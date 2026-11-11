@@ -605,6 +605,19 @@ body.escribiendo .tabbar,body.escribiendo .fab{display:none!important}
 .ctl-hecho .ctl-it-t b{text-decoration:line-through;opacity:.7}
 .ctl-res{display:flex;flex-wrap:wrap;gap:12px;font-size:.85rem;color:var(--muted)}.ctl-res b{color:var(--ink)}
 .ctl-seg3{grid-template-columns:repeat(3,1fr)}
+.ctl-seg4{grid-template-columns:repeat(4,1fr)}.ctl-seg4 button{font-size:.8rem;padding:8px 2px}
+.ctl-asig{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);align-items:center}.ctl-asig select{width:100%;min-width:0}
+.ctl-bts select{min-width:0;max-width:100%}
+.as-sem{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:8px;text-align:center}.as-sem .btn2{padding:8px 0;font-size:1.2rem;line-height:1}.as-sem span{display:grid}.as-sem small{color:var(--muted);font-size:.78rem}
+.as-card{display:grid;gap:10px}.as-tabla{display:grid;gap:4px}
+.as-dia{display:grid;grid-template-columns:42px minmax(0,1fr) auto 64px;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;background:var(--soft);font-size:.8rem;border-left:3px solid transparent}
+.as-dia.ok{border-left-color:#3FB97A}.as-dia.mal{border-left-color:#E5534B}.as-dia.al{border-left-color:#E8A23A}.as-dia.hoy{outline:1px solid var(--brand-2)}
+.as-dn{display:grid;font-weight:700;line-height:1.1}.as-dn small{font-weight:500;color:var(--muted);font-size:.7rem}
+.as-ob{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.as-hr{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}.as-es{text-align:right;font-weight:700;white-space:nowrap}
+.as-dia.ok .as-es{color:#3FB97A}.as-dia.mal .as-es{color:#E5534B}.as-dia.al .as-es{color:#E8A23A}
+@media (max-width:360px){.as-dia{grid-template-columns:36px minmax(0,1fr) auto}.as-es{grid-column:2/4;text-align:left}}
+.as-m{margin:0;display:grid;gap:2px;font-size:.72rem;color:var(--muted)}.as-m a{color:var(--brand-2)}
+.ctl-mia{border-color:var(--brand-2)}#asMsg{white-space:normal;justify-self:stretch;border-radius:10px;padding:8px 10px;line-height:1.3}
 #ctlForm .lbl-s{display:grid;gap:4px}#ctlForm input,#ctlForm select,#ctlForm textarea{width:100%}
 .bloqueo{position:fixed;inset:0;z-index:60;background:var(--brand);color:var(--brand-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px}
 .bloqueo h2{font-family:var(--display);margin:0;font-size:1.3rem}
@@ -5292,15 +5305,130 @@ $("ctlOps").innerHTML=[["material","Material","Entra, se usa o sobra",'<path d="
 // Al cambiar de sección se pinta el tablero o el control
 const irBase=ir; ir=function(s){irBase(s);ctlPintar()};
 
+/* ===== CBO Obras: asistencia con GPS y foto =====
+   El administrador fija la ubicación y el radio de cada obra (ubic) y asigna una obra por día a cada usuario (asig).
+   El trabajador marca entrada o salida: solo vale si su celular está dentro del radio de la obra de ese día, con una foto suya
+   tomada en el momento. La hora la pone el servidor. Registros: asist {id, usuario, obra, fecha, tipo, hora, lat, lng, dist, foto}. */
+CTL_MOD.unshift(["asist","Asistencia","Quién llegó, a qué obra y a qué hora",'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6"/><path d="M15 18l2 2 4-4"/>']);
+CTL_NOM.asist="Asistencia";
+["asig","ubic","asist"].forEach(k=>{if(!Array.isArray(ctl[k]))ctl[k]=[]});
+let asVista="hoy", asFecha=hoyISO;
+const RADIOS=[20,30,50,100];
+const distM=(a,b,c,d)=>{const R=6371000,r=x=>x*Math.PI/180,dl=r(c-a),dn=r(d-b);const h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+const mapaUrl=(lat,lng)=>`https://www.google.com/maps?q=${lat},${lng}`;
+const ubicDe=o=>(ctl.ubic||[]).find(x=>ctlU(x.obra)===ctlU(o));
+const asigDe=(u,f)=>(ctl.asig||[]).find(x=>x.usuario===u&&x.fecha===f);
+const marcasDe=(u,f)=>(ctl.asist||[]).filter(x=>x.usuario===u&&x.fecha===f).sort((a,b)=>String(a.hora).localeCompare(b.hora));
+const horaAhora=()=>new Date().toTimeString().slice(0,5);
+function ubicacionActual(){
+  return new Promise((ok,no)=>{if(!navigator.geolocation)return no(new Error("Este celular no tiene GPS disponible."));
+    navigator.geolocation.getCurrentPosition(p=>ok({lat:p.coords.latitude,lng:p.coords.longitude,prec:Math.round(p.coords.accuracy||0)}),
+      e=>no(new Error(e&&e.code===1?"Debes permitir la ubicación para marcar asistencia.":"No se pudo leer tu ubicación. Sal a un lugar abierto y vuelve a intentar.")),{enableHighAccuracy:true,timeout:20000,maximumAge:0})});
+}
+function tomarSelfie(){return new Promise(ok=>{const i=document.createElement("input");i.type="file";i.accept="image/*";i.capture="user";i.onchange=()=>ok(i.files[0]||null);i.click()})}
+function avisoAsist(t,ok){const e=$("asMsg");if(e){e.textContent=t;e.className="ctl-ch "+(ok?"ok":"mal");e.hidden=false}else toast(t)}
+// Marcar entrada o salida (fotoPrueba solo lo usa la revisión automática)
+async function marcarAsist(tipo,fotoPrueba){
+  const a=asigDe(quien,hoyISO);
+  if(!a){avisoAsist("Hoy no tienes una obra asignada. Habla con el administrador.");return false}
+  const u=ubicDe(a.obra);
+  if(!u){avisoAsist(`La obra ${a.obra} todavía no tiene ubicación. Avisa al administrador.`);return false}
+  avisoAsist("Buscando tu ubicación…",true);
+  let pos;try{pos=await ubicacionActual()}catch(e){avisoAsist(e.message);return false}
+  const d=distM(pos.lat,pos.lng,u.lat,u.lng),tol=(+u.radio||30)+Math.min(pos.prec||0,20);
+  if(d>tol){avisoAsist(`No estás en ${a.obra}: estás a ${d>=1000?(d/1000).toFixed(1)+" km":Math.round(d)+" m"}. Tienes que estar en la obra para marcar.`);try{navigator.vibrate&&navigator.vibrate([60,40,60])}catch{};return false}
+  let foto=fotoPrueba||"";
+  if(!foto){avisoAsist("Estás en la obra. Tómate una foto para marcar.",true);const f=await tomarSelfie();if(!f){avisoAsist("Sin foto no se marca. Vuelve a intentar.");return false}foto=await fotoLiviana(f)}
+  const rec={id:ctlId(),usuario:quien,obra:a.obra,fecha:hoyISO,tipo,hora:horaAhora(),lat:+pos.lat.toFixed(6),lng:+pos.lng.toFixed(6),prec:pos.prec,dist:Math.round(d),foto,ts:Date.now(),por:quien};
+  if(!esDemo()&&cfg){try{const j=await api("ctlGuardar",{col:"asist",rec});if(j.hora)rec.hora=j.hora;if(j.fecha)rec.fecha=j.fecha;if(j.id)rec.id=j.id}catch(e){avisoAsist(e.message);return false}}
+  ctl.asist.push(rec);ctlGuardarLS();celebrarCtl(tipo==="entrada"?"Entrada registrada":"Salida registrada",`${a.obra} · ${rec.hora}`);ctlPintar();avisoAsist(`${tipo==="entrada"?"Entrada":"Salida"} registrada a las ${rec.hora} en ${a.obra}.`,true);return true;
+}
+// Tarjeta "Mi asistencia de hoy" (arriba del tablero y en el módulo)
+function tarjetaMiAsist(){
+  const a=asigDe(quien,hoyISO),m=marcasDe(quien,hoyISO),ent=m.find(x=>x.tipo==="entrada"),sal=[...m].reverse().find(x=>x.tipo==="salida");
+  return `<div class="panel ctl-it ctl-mia"><div class="ctl-it-t"><b>Mi asistencia de hoy</b><small>${a?"Hoy te toca: "+esc(a.obra):"Hoy no tienes obra asignada"}</small></div>
+    ${a?`<div class="ctl-res"><span>Entrada <b>${ent?ent.hora:"—"}</b></span><span>Salida <b>${sal?sal.hora:"—"}</b></span></div><div class="ctl-bts"><button type="button" class="btn" data-marcar="entrada">Marcar entrada</button><button type="button" class="btn2" data-marcar="salida">Marcar salida</button></div>`:""}
+    <p class="ctl-ch" id="asMsg" hidden></p></div>`;
+}
+function filaAsist(n,f){
+  const a=asigDe(n,f),m=marcasDe(n,f),ent=m.find(x=>x.tipo==="entrada"),sal=[...m].reverse().find(x=>x.tipo==="salida");
+  const hrs=ent&&sal?Math.max(0,(+sal.hora.slice(0,2)*60+ +sal.hora.slice(3))-(+ent.hora.slice(0,2)*60+ +ent.hora.slice(3)))/60:0;
+  const est=!a?"":ent?`<span class="ctl-ch ok">Asistió</span>`:(f<hoyISO?`<span class="ctl-ch mal">Faltó</span>`:`<span class="ctl-ch al">No marca aún</span>`);
+  return `<div class="panel ctl-it"><div class="ctl-it-t"><b>${esc(titulo(n))}</b><small>${fCorta(f)} · ${a?esc(a.obra):"Sin obra asignada"}</small></div>${est}
+    ${m.length?`<div class="ctl-res"><span>Entrada <b>${ent?ent.hora:"—"}</b></span><span>Salida <b>${sal?sal.hora:"—"}</b></span>${hrs?`<span>Horas <b>${hrs.toFixed(1)}</b></span>`:""}</div>
+    <div class="ctl-fotos">${m.map(x=>`<figure class="as-m">${miniFoto(x.foto)}<figcaption>${x.tipo==="entrada"?"Entró":"Salió"} ${x.hora} · <a href="${mapaUrl(x.lat,x.lng)}" target="_blank" rel="noopener">mapa</a></figcaption></figure>`).join("")}</div>`:""}</div>`;
+}
+// Historial semanal: de lunes a domingo, por persona, con obra, entrada, salida y horas; flechas para ir de semana en semana
+let asSemana=0;
+const isoDe=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const minDe=x=>(+String(x.hora).slice(0,2))*60+(+String(x.hora).slice(3,5));
+function diasSemana(despl){const d=new Date(hoyISO+"T12:00:00");d.setDate(d.getDate()-((d.getDay()+6)%7)+7*despl);return [...Array(7)].map((_,i)=>{const x=new Date(d);x.setDate(d.getDate()+i);return isoDe(x)})}
+function semanaHTML(personas){
+  const dias=diasSemana(asSemana),DN=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+  const nav=`<div class="as-sem"><button type="button" class="btn2" data-semana="-1" aria-label="Semana anterior">‹</button><span><b>Semana del ${fCorta(dias[0])}</b><small>al ${fCorta(dias[6])}${asSemana===0?" · esta semana":""}</small></span><button type="button" class="btn2" data-semana="1" aria-label="Semana siguiente"${asSemana>=0?" disabled":""}>›</button></div>`;
+  const tarjetas=personas.map(p=>{let hrs=0,asi=0,falt=0;
+    const filas=dias.map((f,i)=>{const a=asigDe(p.n,f),m=marcasDe(p.n,f),ent=m.find(x=>x.tipo==="entrada"),sal=[...m].reverse().find(x=>x.tipo==="salida");
+      const h=ent&&sal?Math.max(0,minDe(sal)-minDe(ent))/60:0;hrs+=h;if(ent)asi++;else if(a&&f<hoyISO)falt++;
+      const est=ent?"ok":(a&&f<hoyISO)?"mal":(a?"al":"");
+      const txt=ent?(h?h.toFixed(1)+" h":"Asistió"):(a&&f<hoyISO?"Faltó":a?(f===hoyISO?"Por marcar":"Asignado"):"Libre");
+      return `<div class="as-dia ${est}${f===hoyISO?" hoy":""}"><span class="as-dn">${DN[i]}<small>${f.slice(8)}/${f.slice(5,7)}</small></span><span class="as-ob">${a?esc(a.obra):ent?esc(ent.obra):"—"}</span><span class="as-hr">${ent?ent.hora:"--:--"} – ${sal?sal.hora:"--:--"}</span><span class="as-es">${txt}</span></div>`}).join("");
+    return `<div class="panel as-card"><div class="ctl-it-t"><b>${esc(titulo(p.n))}</b><small>${asi} ${asi===1?"día":"días"} asistió · ${falt} ${falt===1?"falta":"faltas"} · ${hrs.toFixed(1)} horas</small></div><div class="as-tabla">${filas}</div></div>`}).join("");
+  return nav+`<div class="ctl-lista">${tarjetas||vacio("No hay personas.")}</div>`;
+}
+function vAsist(){
+  const adm=!sesion||sesion.admin;
+  if(!adm)return tarjetaMiAsist()+`<h3 class="ctl-sub">Mi semana</h3>`+semanaHTML([{n:quien}]);
+  const seg=`<div class="seg ctl-seg4" role="group" aria-label="Vista">${[["hoy","Hoy"],["asignar","Asignar"],["obras","Ubicación"],["hist","Semanal"]].map(([k,t])=>`<button type="button" data-asvista="${k}" aria-pressed="${asVista===k}">${t}</button>`).join("")}</div>`;
+  const gente=PERSONAS.filter(p=>!p.b);
+  if(asVista==="hoy"){const L=gente.filter(p=>asigDe(p.n,hoyISO)||marcasDe(p.n,hoyISO).length);
+    return seg+(asigDe(quien,hoyISO)?tarjetaMiAsist():"")+`<h3 class="ctl-sub">Hoy, ${fCorta(hoyISO)}</h3><div class="ctl-lista">${L.length?L.map(p=>filaAsist(p.n,hoyISO)).join(""):vacio("Nadie tiene obra asignada hoy. Ve a Asignar.")}</div>`}
+  if(asVista==="asignar"){const obras=invObrasLista();
+    return seg+`<label class="lbl-s">Día<input type="date" id="asFecha" value="${asFecha}"></label><p class="hint">Elige la obra de cada persona para ese día. Solo podrá marcar estando en esa obra.</p><div class="ctl-lista">${gente.map(p=>{const a=asigDe(p.n,asFecha);
+      return `<div class="panel ctl-it ctl-asig"><b>${esc(titulo(p.n))}</b><select data-asig="${escA(p.n)}" aria-label="Obra de ${escA(titulo(p.n))}"><option value="">Sin obra</option>${obras.map(o=>`<option${a&&ctlU(a.obra)===ctlU(o)?" selected":""}>${esc(o)}</option>`).join("")}</select></div>`}).join("")}</div>`}
+  if(asVista==="obras")return seg+`<p class="hint">Fija dónde está cada obra y el radio en el que se puede marcar. Lo más exacto es "Fijar aquí" estando en la obra.</p><div class="ctl-lista">${invObrasLista().map(o=>{const u=ubicDe(o);
+      return `<div class="panel ctl-it"><div class="ctl-it-t"><b>${esc(o)}</b><small>${u?`Ubicación fijada · radio ${u.radio} m · <a href="${mapaUrl(u.lat,u.lng)}" target="_blank" rel="noopener">ver en el mapa</a>`:"Sin ubicación todavía"}</small></div>
+        <div class="ctl-bts"><button type="button" class="btn" data-fijar="${escA(o)}">Fijar aquí</button><button type="button" class="btn2" data-enlace="${escA(o)}">Pegar enlace de Google Maps</button><select data-radio="${escA(o)}" aria-label="Radio">${RADIOS.map(r=>`<option value="${r}"${(u&&+u.radio===r)||(!u&&r===30)?" selected":""}>Radio ${r} m</option>`).join("")}</select></div></div>`}).join("")||vacio("Primero crea una obra.")}</div>`;
+  return seg+semanaHTML(gente);
+}
+function guardarUbic(o,lat,lng){const s=document.querySelector(`[data-radio="${CSS.escape(o)}"]`),r=+(s&&s.value)||30;
+  ctlGuardarRec("ubic",{id:"ubic:"+ctlU(o),obra:o,lat:+(+lat).toFixed(6),lng:+(+lng).toFixed(6),radio:r,ts:Date.now(),por:quien},["Ubicación fijada",o+" · radio "+r+" m"])}
+function coordsDeEnlace(t){t=String(t||"");const m=t.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||t.match(/[?&](?:q|query|ll)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/)||t.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)||t.match(/^\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*$/);return m?[+m[1],+m[2]]:null}
+// La vista de Asistencia se dibuja dentro del Control de obra; el tablero muestra "Mi asistencia de hoy"
+const ctlRenderBase=ctlRender;
+ctlRender=function(){if(ctlVista!=="asist")return ctlRenderBase();const el=$("ctlApp");if(!el)return;
+  el.innerHTML=`<div class="ctl-volver"><button type="button" class="btnlink" id="ctlVolver">${IC.back} Control de obra</button></div><div class="ctl-cab"><div><h2>Asistencia</h2><p class="hint">${sesion&&!sesion.admin?"Marca tu entrada y salida en la obra":"Asigna obras, fija ubicaciones y mira quién vino"}</p></div></div>`+vAsist()};
+const ctlTableroBase=ctlTablero;
+ctlTablero=function(){ctlTableroBase();const el=$("ctlTab");if(el&&asigDe(quien,hoyISO))el.insertAdjacentHTML("afterbegin",tarjetaMiAsist())};
+const ctlNuevoBase=ctlNuevo;
+ctlNuevo=function(col,rec){if(col==="asist"){cerrarOv("ovCtlNuevo");ctlVista="asist";ir("control");return}return ctlNuevoBase(col,rec)};
+document.addEventListener("click",async e=>{
+  const t=e.target;let b;
+  if((b=t.closest("[data-marcar]"))){b.disabled=true;try{await marcarAsist(b.dataset.marcar)}finally{b.disabled=false}return}
+  if((b=t.closest("[data-asvista]"))){asVista=b.dataset.asvista;ctlRender();return}
+  if((b=t.closest("[data-semana]"))){asSemana=Math.min(0,asSemana+ +b.dataset.semana);ctlRender();return}
+  if((b=t.closest("[data-fijar]"))){const o=b.dataset.fijar;toast("Buscando tu ubicación…");try{const p=await ubicacionActual();if(p.prec>60&&!confirm(`El GPS tiene poca precisión ahora (±${p.prec} m). ¿Fijar igual?`))return;guardarUbic(o,p.lat,p.lng)}catch(er){toast(er.message)}return}
+  if((b=t.closest("[data-enlace]"))){const o=b.dataset.enlace,v=prompt(`Pega el enlace de Google Maps de ${o} (o las coordenadas, ej.: -12.0464, -77.0428)`);if(!v)return;const c=coordsDeEnlace(v);if(!c){toast("No encontré las coordenadas en ese enlace. Abre el lugar en Google Maps y copia el enlace de la barra de direcciones.");return}guardarUbic(o,c[0],c[1]);return}
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.id==="asFecha"){asFecha=t.value||hoyISO;ctlRender();return}
+  if(t.dataset&&t.dataset.asig!==undefined){const n=t.dataset.asig,id="asig:"+n+"|"+asFecha;
+    if(!t.value){ctlBorrarRec("asig",id);toast(`${nomCorto(n)} sin obra el ${fCorta(asFecha)}`);return}
+    ctlGuardarRec("asig",{id,usuario:n,fecha:asFecha,obra:t.value,ts:Date.now(),por:quien});toast(`${nomCorto(n)} → ${t.value} el ${fCorta(asFecha)}`);return}
+  if(t.dataset&&t.dataset.radio!==undefined){const u=ubicDe(t.dataset.radio);if(u){u.radio=+t.value;ctlGuardarRec("ubic",u);toast(`Radio de ${u.obra}: ${u.radio} m`)}}
+});
+
 /* ===== CBO Obras: se esconde todo lo de finanzas ===== */
 (function(){
   if(!MODO_OBRAS)return;
   const FIN=["movimientos","sunat","terceros","planilla","obras","anual"];
-  document.querySelectorAll("[data-tab],[data-s],[data-ir]").forEach(b=>{const k=b.dataset.tab||b.dataset.s||b.dataset.ir;if(b.dataset.tab){if(b.dataset.tab!=="inicio"&&b.dataset.tab!=="mas")b.remove()}else if(FIN.includes(k)||k==="inicio")b.remove()});
+  document.querySelectorAll("[data-tab],[data-s],[data-ir]").forEach(b=>{const k=b.dataset.tab||b.dataset.s||b.dataset.ir;if(b.dataset.tab)return;if(FIN.includes(k)||k==="inicio")b.remove()});
   document.querySelectorAll(".repCsv,.repPdf").forEach(b=>b.remove());
   ["meta","firm","rep","barra"].forEach(k=>{const d=document.querySelector(`.cfg-item[data-cfg="${k}"]`);if(d)d.remove()});
   TITULOS.inventario="Inventario de obra";TITULOS.tablero="Tablero de obras";TITULOS.control="Control de obra";
-  document.head.insertAdjacentHTML("beforeend","<style>.tabbar{grid-template-columns:repeat(3,1fr)!important}</style>");
+  // Barra: Inicio (tablero) · Control · + · Inventario · Más
+  BAR_DEF.control=["Control",'<path d="M9 11l3 3 8-8"/><path d="M20 12v7H4V5h11"/>'];BAR_DEF.inventario=["Inventario",'<path d="M3 9l9-5 9 5v10l-9 5-9-5z"/><path d="M3 9l9 5 9-5M12 14v10"/>'];
+  Object.keys(BAR_DEF).forEach(k=>{if(k!=="control"&&k!=="inventario")delete BAR_DEF[k]});ajustes.barA="control";ajustes.barB="inventario";pintarBarra();
   const r=$("tabReg");r.setAttribute("aria-label","Registrar material");
   r.setAttribute("aria-label","Registrar");
   const fb=document.getElementById("fab");if(fb)fb.addEventListener("click",e=>{e.stopImmediatePropagation();e.preventDefault();abrirOv("ovCtlNuevo")},true);
