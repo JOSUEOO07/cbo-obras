@@ -1963,6 +1963,8 @@ body.fiesta .usuario i{background:var(--fi-g);background-size:var(--fi-s);color:
     for(let i=0;i<LS.length;i++){const k=LS.key(i);if(k&&!k.startsWith(P)&&!no.includes(k))ks.push(k)}
     ks.forEach(k=>{const v=G.call(LS,k);if(k==="cbo-config"){try{const c=JSON.parse(v);if(!c||!/AKfycbxzSAHO/.test(String(c.url||"")))return}catch(e){return}}if(G.call(LS,P+k)===null)S.call(LS,P+k,v)});
     S.call(LS,P+"_ok","1")}
+  // Lo pendiente de Finanzas que se copió a Obras se borra: eran pedidos de Finanzas ("Acción desconocida" en el servidor de Obras)
+  ["cbo-cola","cbo-firmas-pend","cbo-firmas-borr"].forEach(k=>{try{R.call(LS,P+k)}catch(e){}});
   // la lista de usuarios para que la pantalla de entrada salga al toque (se actualiza sola con Google)
   if(G.call(LS,P+"cbo-personas")===null){const v=G.call(LS,"cbo-personas");if(v)S.call(LS,P+"cbo-personas",v)}
   SPr.getItem=function(k){return G.call(this,esLS(this)?P+k:k)};SPr.setItem=function(k,v){return S.call(this,esLS(this)?P+k:k,v)};SPr.removeItem=function(k){return R.call(this,esLS(this)?P+k:k)};
