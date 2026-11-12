@@ -185,6 +185,8 @@ body.menu .fab{display:none}
 .ftrab-info{display:grid;gap:2px;background:var(--soft);border-radius:12px;padding:10px 12px;font-size:.88rem}
 .ftrab-info b{overflow-wrap:anywhere}
 .ftrab-ok{display:flex;gap:10px;align-items:center;background:var(--in-bg);color:var(--in);border-radius:12px;padding:8px 12px;font-weight:700;font-size:.86rem}
+.ftrab-ok{width:100%;border:0;text-align:left;font:inherit;cursor:pointer;touch-action:manipulation}
+.fver{background:#fff;border-radius:14px;padding:18px;display:grid;place-items:center;min-height:200px}.fver img{max-width:100%;max-height:52vh;object-fit:contain}
 .ftrab-ok img{height:40px;max-width:120px;object-fit:contain;background:#fff;border-radius:6px;padding:2px}
 #movFirmaEst{grid-column:1/-1}#movFirmaEst:empty{display:none}#movFirmar{grid-column:1/-1}
 .cp-btn.cp-firma{background:var(--surface);color:var(--brand-2);border:1.5px solid var(--brand-2)}
@@ -357,7 +359,8 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
 .cp-wa svg{width:18px;height:18px;flex:none}
 .cp-btn{flex-wrap:wrap;text-align:center;line-height:1.2}
 .cp-btn .cpsub{flex-basis:100%;font-size:.72rem;font-weight:600;opacity:.9}
-.cp-wa2{grid-column:1/-1;background:#128C7E!important;border-color:#128C7E!important}
+.cp-btn[hidden]{display:none!important}
+.cp-wa2{background:#128C7E!important;border-color:#128C7E!important}
 @media (max-width:380px){.cp-btns{grid-template-columns:1fr}}
 
 /* Comprobante de pago: A4 horizontal, ejemplar del trabajador y de la empresa */
@@ -590,6 +593,12 @@ body.escribiendo .tabbar,body.escribiendo .fab{display:none!important}
 .ctl-ops .ctl-mod{grid-template-columns:40px minmax(0,1fr)}
 .ctl-mod b,.ctl-mod small{overflow-wrap:anywhere}
 @media (max-width:380px){.ctl-mods,.ctl-ops{grid-template-columns:1fr}}
+/* En celular: ícono arriba y el nombre abajo a todo el ancho, para que ninguna palabra se parta */
+@media (max-width:560px) and (min-width:381px){
+  .ctl-mod,.ctl-ops .ctl-mod{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"i . e" "t t t";align-items:start;row-gap:8px;min-height:0}
+  .ctl-mod i{grid-area:i}.ctl-mod span{grid-area:t}.ctl-mod em{grid-area:e}
+  .ctl-mod b,.ctl-mod small{overflow-wrap:normal;word-break:normal}
+}
 .ctl-obrasel{display:grid;gap:4px}.ctl-obrasel select{width:100%}
 .ctl-volver .btnlink{display:inline-flex;align-items:center;gap:6px}.ctl-volver svg{width:16px;height:16px}
 .ctl-it{display:grid;gap:8px;min-width:0}.ctl-it-t{display:grid;min-width:0}.ctl-it-t b{overflow-wrap:anywhere}.ctl-it-t small{color:var(--muted);font-size:.78rem}
@@ -616,6 +625,11 @@ body.escribiendo .tabbar,body.escribiendo .fab{display:none!important}
 .as-ob{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.as-hr{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}.as-es{text-align:right;font-weight:700;white-space:nowrap}
 .as-dia.ok .as-es{color:#3FB97A}.as-dia.mal .as-es{color:#E5534B}.as-dia.al .as-es{color:#E8A23A}
 @media (max-width:360px){.as-dia{grid-template-columns:36px minmax(0,1fr) auto}.as-es{grid-column:2/4;text-align:left}}
+.as-circ{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;justify-items:center;margin:2px 0}
+.as-circ span{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.86rem;border:1.5px solid var(--line);color:var(--muted)}
+.as-circ .ok{background:#2E9E5B;border-color:#2E9E5B;color:#fff}.as-circ .mal{background:#D64541;border-color:#D64541;color:#fff}
+.as-circ .hoy{outline:2px solid var(--brand-2);outline-offset:2px}
+@media (max-width:340px){.as-circ span{width:30px;height:30px;font-size:.78rem}}
 .as-m{margin:0;display:grid;gap:2px;font-size:.72rem;color:var(--muted)}.as-m a{color:var(--brand-2)}
 .ctl-mia{border-color:var(--brand-2)}#asMsg{white-space:normal;justify-self:stretch;border-radius:10px;padding:8px 10px;line-height:1.3}
 #ctlForm .lbl-s{display:grid;gap:4px}#ctlForm input,#ctlForm select,#ctlForm textarea{width:100%}
@@ -1851,7 +1865,7 @@ body.fiesta .usuario i{background:var(--fi-g);background-size:var(--fi-s);color:
     <div class="cp-btns" id="movCPs" hidden>
       <div id="movFirmaEst"></div>
       <button type="button" class="btn cp-btn cp-firma" id="movFirmar">✍ Firma del trabajador</button>
-      <button type="button" class="btn cp-btn" id="movCP">📄 Comprobante (PDF)</button>
+      <button type="button" class="btn cp-btn" id="movCP" hidden>📄 Comprobante (PDF)</button>
       <button type="button" class="btn cp-btn cp-wa" id="movCPWa"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.6 11.6 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>WhatsApp al trabajador<small class="cpsub">1 comprobante · vertical</small></button>
       <button type="button" class="btn cp-btn cp-wa cp-wa2" id="movCPWa2"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.6 11.6 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>WhatsApp para imprimir<small class="cpsub">2 partes · horizontal</small></button>
     </div>
@@ -2406,12 +2420,22 @@ const firmasDB=(()=>{let p=null;const abrir=()=>p||(p=new Promise((ok,mal)=>{con
 firmasDB.todas().then(L=>{(L||[]).forEach(f=>FIRMAS[f.id]=f);pintarFirmados()}).catch(()=>{});
 function pintarFirmaMov(){
   const r=movSel, f=r&&FIRMAS[r.id];
-  $("movFirmaEst").innerHTML=f?`<div class="ftrab-ok"><img src="${f.png}" alt="Firma"><span>✓ Firmado por el trabajador<br><small style="font-weight:500">${fechaHora(f.ts)}</small></span></div>`:"";
+  $("movFirmaEst").innerHTML=f?(esAdmin()?`<button type="button" class="ftrab-ok" id="verFirma" aria-label="Ver la firma en grande"><img src="${f.png}" alt="Firma"><span>✓ Firmado por el trabajador<br><small style="font-weight:500">${fechaHora(f.ts)} · Toca para verla</small></span></button>`:`<div class="ftrab-ok"><span>✓ Firmado por el trabajador<br><small style="font-weight:500">${fechaHora(f.ts)}</small></span></div>`):"";
   $("movFirmar").textContent=f?"✍ Volver a firmar":"✍ Firma del trabajador";
 }
+// Ver la firma guardada en grande (tocando la firma en el detalle del pago)
+(function(){
+  const ov=document.createElement("div");ov.className="overlay";ov.id="ovFirmaVer";ov.hidden=true;
+  ov.innerHTML=`<div class="sheet"><h3>Firma del trabajador <button type="button" class="x" data-cerrar aria-label="Cerrar">✕</button></h3><div class="fver"><img id="fverImg" alt="Firma del trabajador"></div><p class="hint" id="fverInfo" style="margin:0"></p></div>`;
+  document.body.appendChild(ov);ov.querySelector("[data-cerrar]").onclick=()=>cerrarOv("ovFirmaVer");
+  ov.addEventListener("click",e=>{if(e.target===ov)cerrarOv("ovFirmaVer")});
+  document.addEventListener("click",e=>{if(!e.target.closest("#verFirma")||!esAdmin())return;   // la firma solo la ve el administrador
+    const r=movSel,f=r&&FIRMAS[r.id];if(!f)return;
+    $("fverImg").src=f.png;$("fverInfo").textContent=`${titulo(f.nombre||r.desc||"")} · DNI ${f.dni||r.ruc||""} · Firmado el ${fechaHora(f.ts)}${f.num?" · "+f.num:""}`;abrirOv("ovFirmaVer")});
+})();
 function pintarFirmados(){
   const L=Object.values(FIRMAS).sort((a,b)=>b.ts-a.ts);
-  $("firmadosN").textContent=L.length?L.length+" firmado"+(L.length>1?"s":""):"";
+  const fN=$("firmadosN");if(fN)fN.textContent=L.length?L.length+" firmado"+(L.length>1?"s":""):"";if(!$("firmados"))return;
   $("firmados").innerHTML=L.length?L.map(f=>`<button type="button" data-fid="${esc(String(f.id))}"><span>${esc(f.num||"")} · ${esc(titulo(f.nombre||""))}</span><small>${fechaHora(f.ts)} ⬇</small></button>`).join(""):`<p class="hint" style="margin:0">Aún no hay comprobantes firmados.</p>`;
 }
 async function descargarFirmado(r){
@@ -3103,6 +3127,7 @@ const SES_K="cbo-sesion";
 let sesion=leerLS(SES_K,null); if(!(sesion&&sesion.u&&sesion.t))sesion=null;
 async function api(accion,extra,conf){
   const c=conf||cfg;
+  if(typeof tokPend!=="undefined"&&tokPend&&accion!=="entrar"&&!conf&&sesion&&!sesion.t){try{await tokPend}catch(e){}}   // espera la sesión que se está pidiendo por detrás
   // Con señal débil la petición puede quedarse colgada: se corta a los 30 s y cuenta como "sin internet"
   const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),45000);
   let res;
@@ -3203,6 +3228,7 @@ async function enviarCola(){
           }
           // Las operaciones siguientes sobre este registro usan ya el id real
           cola.slice(1).forEach(o=>{if(String(o.id)===String(op.tmp))o.id=nuevo});
+          if(nuevo)moverFirma(op.tmp,nuevo);   // si ya se firmó mientras el pago se enviaba, la firma pasa a su número real
         }
         else if(op.op==="editar") await api("editar",Object.assign({id:op.id,registro:op.registro},op.parcial?{parcial:true}:{}));
         else if(op.op==="borrar") await api("borrar",{id:op.id});
@@ -3583,9 +3609,21 @@ const abrirPinBase=abrirPin;
 abrirPin=function(modo,titulo,check){pinHuellaFn=null;$("pinHuella").hidden=true;$("bloqueo").classList.remove("solo-huella");return abrirPinBase(modo,titulo,check)};
 
 // --- Entrar: primero lo guardado en este equipo (al instante); si no, el servidor ---
+var tokPend=null;   // sesión que se está pidiendo al servidor mientras la app ya se abrió
 async function revisarPinDe(n,pin){
   const a=accDe(n)||{};
   if(a.h&&a.s&&a.t&&await hashLocal(a.s,pin)===a.h)return Object.assign({},a.ses||{},{u:n,t:a.t});
+  // Al instante también la primera vez en el equipo del administrador: él ya conoce los PIN; la sesión del servidor llega por detrás
+  const pp=PERSONAS.find(x=>x.n===n);
+  if(pp&&pp.p&&String(pp.p)===String(pin)&&!sinNube()){
+    tokPend=(async()=>{try{const s=await pedirEntrada(n,pin);const sal=b64u(reto());
+        accPoner(n,{s:sal,h:await hashLocal(sal,pin),t:s.t,ses:{admin:!!s.admin,ocultas:s.ocultas||[],descargar:!!s.descargar},m:metodoDe(n)});
+        if(sesion&&sesion.u===n&&!sesion.t){Object.assign(sesion,{t:s.t,admin:!!s.admin,ocultas:s.ocultas||[],descargar:!!s.descargar});guardarLS(SES_K,sesion);aplicarPermisos()}
+        return s.t}
+      catch(e){if(sesion&&sesion.u===n&&!sesion.t){perderSesion();toast(e.message||"No se pudo entrar")}throw e}
+      finally{tokPend=null}})();
+    return {u:n,t:"",admin:!!pp.admin,ocultas:pp.oc||[],descargar:!!(pp.admin||pp.d)};
+  }
   const s=await pedirEntrada(n,pin);
   const sal=b64u(reto());
   accPoner(n,{s:sal,h:await hashLocal(sal,pin),t:s.t,ses:{admin:!!s.admin,ocultas:s.ocultas||[],descargar:!!s.descargar},m:metodoDe(n)});
@@ -4424,8 +4462,27 @@ async function quitarFirmaNube(id){
   guardarLS(FIRMA_PEND,(leerLS(FIRMA_PEND,[])||[]).filter(x=>x!==id));
   try{await api("borrarFirma",{id})}catch(e){const L=leerLS(FIRMA_BORR,[])||[];if(!L.includes(id)){L.push(id);guardarLS(FIRMA_BORR,L)}}
 }
+// Firma hecha antes de que el pago llegue a Google (número temporal): pasa al número real y se sube al Excel
+async function moverFirma(viejo,nuevo){
+  const f=FIRMAS[viejo];if(!f||!nuevo||String(viejo)===String(nuevo))return;
+  const n=Object.assign({},f,{id:nuevo});
+  try{await firmasDB.guardar(n);await firmasDB.quitar(viejo)}catch{}
+  delete FIRMAS[viejo];FIRMAS[nuevo]=n;if(movSel&&String(movSel.id)===String(viejo))movSel=Object.assign({},movSel,{id:nuevo});
+  try{pintarFirmados();pintarFirmaMov()}catch{}
+  subirFirma(n);
+}
+// Las firmas que ya quedaron con número temporal se reconocen por trabajador, fecha y monto
+function rescatarFirmas(){
+  for(const f of Object.values(FIRMAS)){
+    if(idReal(f.id))continue;
+    if(rows.some(x=>String(x.id)===String(f.id)))continue;   // el pago aún se está enviando
+    const r=rows.find(x=>idReal(x.id)&&!FIRMAS[x.id]&&String(x.ruc||"")===String(f.dni||"")&&x.fecha===f.fecha&&Math.abs((+x.monto||0)-(+f.monto||0))<0.01);
+    if(r)moverFirma(f.id,r.id);
+  }
+}
 let firmasSync=false;
 async function sincronizarFirmas(){
+  if(!esDemo())try{rescatarFirmas()}catch{}
   if(firmasSync||esDemo()||!cfg||!navigator.onLine) return; firmasSync=true;
   try{
     for(const id of (leerLS(FIRMA_BORR,[])||[])){try{await api("borrarFirma",{id});guardarLS(FIRMA_BORR,(leerLS(FIRMA_BORR,[])||[]).filter(x=>x!==id))}catch{}}
@@ -4801,7 +4858,7 @@ function alAtras(){
   const vis=id=>{const e=$(id);return !!e&&!e.hidden};
   if(vis("bloqueo")||vis("setup")||(vis("ovQuien")&&!sesion))return true;
   if(vis("escaner")){cerrarEscaner();return true}
-  for(const id of ["ovCtl","ovCtlNuevo","ovFirmaT","ovInvObra","ovInv","ovTrab","ovPla","ovSun","ovMov","ovMas","ovPerfil","ovQuien"]){if(vis(id)){cerrarOv(id);if(id==="ovInv")invItemAbierto=null;return true}}
+  for(const id of ["ovCtl","ovCtlNuevo","ovFirmaVer","ovFirmaT","ovInvObra","ovInv","ovTrab","ovPla","ovSun","ovMov","ovMas","ovPerfil","ovQuien"]){if(vis(id)){cerrarOv(id);if(id==="ovInv")invItemAbierto=null;return true}}
   if(vis("ov")){if(paso>1)irPaso(paso-1);else closeF();return true}
   if(document.body.classList.contains("abanico")){document.body.classList.remove("abanico");return true}
   if($("app").classList.contains("abierto")){$("app").classList.remove("abierto");document.body.classList.remove("menu");return true}
@@ -5290,8 +5347,10 @@ const CTL_MOD=[
   ["stock","Alertas de stock","Avisa cuando un material se está acabando",'<path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/>'],
   ["pruebas","Pruebas técnicas","Presión de agua, desagüe, megado y tierra",'<circle cx="12" cy="13" r="7"/><path d="M12 13l3-3M12 3v3"/>'],
   ["pend","Observaciones y pendientes","Lo que hay que corregir, hasta cerrarlo",'<path d="M9 11l3 3 8-8"/><path d="M20 12v7H4V5h11"/>'],
-  ["entrega","Entrega de obra","PDF con avance, pruebas y fotos",'<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 14l2 2 4-4"/>']
+  ["entrega","Entrega de obra","PDF con pruebas, material y fotos",'<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 14l2 2 4-4"/>']
 ];
+// Josué (12/11/2026): se quitan Avance por partidas, Cuaderno de obra y Observaciones y pendientes (los datos guardados no se borran)
+CTL_MOD.splice(0,CTL_MOD.length,...CTL_MOD.filter(m=>!["avance","notas","pend"].includes(m[0])));
 const CTL_NOM=Object.fromEntries(CTL_MOD.map(m=>[m[0],m[1]]));
 let ctl=Object.assign({avance:[],notas:[],fotos:[],pedidos:[],herr:[],pruebas:[],pend:[],minimos:{}},leerLS(CTL_K,{})||{});
 let ctlVista="menu", ctlEdit=null;
@@ -5346,8 +5405,7 @@ function ctlTablero(){
   const obras=invObrasLista();
   const fila=o=>{const r=resumenObra(o),ch=(n,t,cl)=>n?`<span class="ctl-ch ${cl||""}">${n} ${t}</span>`:"";
     return `<button type="button" class="panel ctl-obra" data-ctlobra="${escA(o)}"><span class="ctl-obra-t"><b>${esc(o)}</b>${ctlU(o)===ctlU(invObra)?"<small>Obra actual</small>":""}</span>
-      <span class="ctl-barra"><i style="width:${r.prom||0}%"></i></span><span class="ctl-pct">${r.prom==null?"Sin partidas":r.prom+" % de avance"}</span>
-      <span class="ctl-chips">${ch(r.pend,r.pend===1?"pendiente":"pendientes","al")}${ch(r.ped,r.ped===1?"pedido por aprobar":"pedidos por aprobar","al")}${ch(r.stock,"material por acabarse","al")}${ch(r.obs,"prueba observada","al")}${ch(r.herr,r.herr===1?"herramienta en obra":"herramientas en obra")}${!(r.pend||r.ped||r.stock||r.obs||r.herr)?'<span class="ctl-ch ok">Todo en orden</span>':""}</span></button>`};
+      <span class="ctl-chips">${ch(r.ped,r.ped===1?"pedido por aprobar":"pedidos por aprobar","al")}${ch(r.stock,"material por acabarse","al")}${ch(r.obs,"prueba observada","al")}${ch(r.herr,r.herr===1?"herramienta en obra":"herramientas en obra")}${!(r.pend||r.ped||r.stock||r.obs||r.herr)?'<span class="ctl-ch ok">Todo en orden</span>':""}</span></button>`};
   el.innerHTML=`<div class="ctl-cab"><div><h2>Tus obras</h2><p class="hint">Toca una obra para ver su control</p></div><button type="button" class="btn" id="ctlNuevaObra">+ Obra</button></div>
     ${obras.length?`<div class="ctl-obras">${obras.map(fila).join("")}</div>`:`<div class="panel"><p class="hint" style="margin:0">Aún no hay obras. Crea la primera con "+ Obra".</p></div>`}
     <h3 class="ctl-sub">Accesos rápidos</h3><div class="ctl-mods">${CTL_MOD.map(m=>`<button type="button" class="ctl-mod" data-ctlmod="${m[0]}"><i><svg viewBox="0 0 24 24">${m[3]}</svg></i><span><b>${m[1]}</b><small>${m[2]}</small></span></button>`).join("")}<button type="button" class="ctl-mod" data-irinv><i><svg viewBox="0 0 24 24"><path d="M3 9l9-5 9 5v10l-9 5-9-5z"/><path d="M3 9l9 5 9-5M12 14v10"/></svg></i><span><b>Inventario de obra</b><small>Material que entra, se usa y sobra</small></span></button></div>`;
@@ -5429,8 +5487,8 @@ function vPend(){
 }
 function vEntrega(){
   const r=resumenObra(invObra);
-  return `<div class="panel ctl-it"><p class="ctl-txt">Arma el PDF de entrega de <b>${esc(invObra||"")}</b> con el avance, las pruebas, los pendientes, el material usado y las fotos de antes y después, con espacio para la firma de conformidad.</p>
-    <div class="ctl-res"><span>Avance <b>${r.prom==null?"—":r.prom+" %"}</b></span><span>Pendientes <b>${r.pend}</b></span><span>Pruebas observadas <b>${r.obs}</b></span></div>
+  return `<div class="panel ctl-it"><p class="ctl-txt">Arma el PDF de entrega de <b>${esc(invObra||"")}</b> con las pruebas, el material usado y las fotos de antes y después, con espacio para la firma de conformidad.</p>
+    <div class="ctl-res"><span>Pruebas observadas <b>${r.obs}</b></span></div>
     <label class="lbl-s">Cliente<input id="entCli" type="text" maxlength="60" placeholder="Nombre del cliente o empresa"></label>
     <div class="line"><button type="button" class="btn" id="entPdf">Generar PDF de entrega</button></div></div>`;
 }
@@ -5440,12 +5498,10 @@ function generarEntrega(){
   const usado=new Map();movsDe(o).filter(m=>m.tipo==="usa").forEach(m=>{const k=m.item+"|"+m.medida;usado.set(k,(usado.get(k)||0)+(+m.cant||0))});
   const tr=a=>`<tr>${a.map(x=>`<td>${x}</td>`).join("")}</tr>`;
   $("reporte").innerHTML=`<div class="cab"><div><h1>Entrega de obra · ${esc(o)}</h1>Casa Bonita Oregón S.A.C. · RUC 20614484153${cli?" · Cliente: "+esc(cli):""}</div><div style="text-align:right">Fecha: ${fCorta(hoyISO)}</div></div>
-    <h2>Avance por partidas ${r.prom==null?"":"· "+r.prom+" %"}</h2>${av.length?`<table><tr><th>Partida</th><th>Especialidad</th><th>Piso</th><th class="n">Avance</th></tr>${av.map(x=>tr([esc(x.partida),esc(x.esp||""),esc(x.piso||""),`<span class="n">${+x.pct||0} %</span>`])).join("")}</table>`:"<p>Sin partidas registradas.</p>"}
     <h2>Pruebas técnicas</h2>${pr.length?`<table><tr><th>Prueba</th><th>Lugar</th><th>Fecha</th><th>Valor</th><th>Resultado</th></tr>${pr.map(x=>{const t=PRUEBAS.find(p=>p[0]===x.tipo)||["",x.tipo,""];return tr([esc(t[1]),esc(x.lugar||""),fCorta(x.fecha),esc((x.valor||"")+" "+t[2]),x.res==="aprobado"?"Aprobada":"Observada"])}).join("")}</table>`:"<p>Sin pruebas registradas.</p>"}
-    <h2>Observaciones</h2>${pe.length?`<table><tr><th>Observación</th><th>Pidió</th><th>Estado</th></tr>${pe.map(x=>tr([esc(x.texto),esc(x.quien||""),x.estado==="cerrado"?"Hecho el "+fCorta(x.cierre):"Pendiente"])).join("")}</table>`:"<p>Sin observaciones.</p>"}
     <h2>Material usado</h2>${usado.size?`<table><tr><th>Material</th><th>Medida</th><th class="n">Cantidad</th></tr>${[...usado].map(([k,c])=>{const [it,med]=k.split("|"),inf=INV_IDX[it]||{n:it,u:"und"};return tr([esc(inf.n),esc(med||""),`<span class="n">${invNum(c)}${invU(inf.u,c)}</span>`])}).join("")}</table>`:"<p>Sin material registrado.</p>"}
     ${fo.length?`<h2>Fotos antes y después</h2><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">${fo.slice(0,24).map(x=>`<figure style="margin:0"><img src="${x.foto}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px"><figcaption style="font-size:9px">${esc(x.ambiente)} · ${x.momento==="antes"?"Antes":"Después"}</figcaption></figure>`).join("")}</div>`:""}
-    <h2>Conformidad</h2><p>El cliente declara recibir la obra conforme, salvo las observaciones pendientes indicadas.</p>
+    <h2>Conformidad</h2><p>El cliente declara recibir la obra conforme.</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:50px"><div style="border-top:1px solid #333;padding-top:6px;text-align:center">Casa Bonita Oregón S.A.C.</div><div style="border-top:1px solid #333;padding-top:6px;text-align:center">Cliente${cli?": "+esc(cli):""}</div></div>`;
   const t0=document.title;document.title=`Entrega de obra ${o}`;setTimeout(()=>{window.print();document.title=t0},60);
 }
@@ -5585,9 +5641,15 @@ async function marcarAsist(tipo,fotoPrueba){
 function tarjetaMiAsist(){
   if(asigDe(quien,hoyISO))setTimeout(gpsPrender,0);
   const a=asigDe(quien,hoyISO),m=marcasDe(quien,hoyISO),ent=m.find(x=>x.tipo==="entrada"),sal=[...m].reverse().find(x=>x.tipo==="salida");
-  return `<div class="panel ctl-it ctl-mia"><div class="ctl-it-t"><b>Mi asistencia de hoy</b><small>${a?"Hoy te toca: "+esc(a.obra):"Hoy no tienes obra asignada"}</small></div>
+  return `<div class="panel ctl-it ctl-mia"><div class="ctl-it-t"><b>Mi asistencia</b><small>${a?"Hoy te toca: "+esc(a.obra):"Hoy no tienes obra asignada"}</small></div>${semCirc(quien)}
     ${a?`<div class="ctl-res"><span>Entrada <b>${ent?ent.hora:"—"}</b></span><span>Salida <b>${sal?sal.hora:"—"}</b></span></div><div class="ctl-bts"><button type="button" class="btn" data-marcar="entrada">Marcar entrada</button><button type="button" class="btn2" data-marcar="salida">Marcar salida</button></div><p class="hint as-como">Marca estando en la obra y confirma con tu huella o tu firma.</p>`:""}
     <p class="ctl-ch" id="asMsg" hidden></p></div>`;
+}
+// Mi asistencia de la semana: un circulito por día (L a D). Verde = asistió · rojo = faltó (tenía obra y no marcó) · normal = sin obra, día que no llega o domingo
+function semCirc(u){
+  const DL=["L","M","M","J","V","S","D"],DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  return `<div class="as-circ" role="list" aria-label="Mi asistencia de esta semana">${diasSemana(0).map((f,i)=>{const ent=marcasDe(u,f).some(x=>x.tipo==="entrada"),falta=!ent&&i<6&&f<hoyISO&&!!asigDe(u,f);
+    const c=ent?"ok":falta?"mal":"";return `<span role="listitem" class="${c}${f===hoyISO?" hoy":""}" aria-label="${DN[i]} ${f.slice(8)}: ${ent?"asistió":falta?"faltó":"sin marca"}">${DL[i]}</span>`}).join("")}</div>`;
 }
 function filaAsist(n,f){
   const a=asigDe(n,f),m=marcasDe(n,f),ent=m.find(x=>x.tipo==="entrada"),sal=[...m].reverse().find(x=>x.tipo==="salida");
@@ -5640,7 +5702,7 @@ const ctlRenderBase=ctlRender;
 ctlRender=function(){if(ctlVista!=="asist")return ctlRenderBase();const el=$("ctlApp");if(!el)return;
   el.innerHTML=`<div class="ctl-volver"><button type="button" class="btnlink" id="ctlVolver">${IC.back} Control de obra</button></div><div class="ctl-cab"><div><h2>Asistencia</h2><p class="hint">${sesion&&!sesion.admin?"Marca tu entrada y salida en la obra":"Asigna obras, fija ubicaciones y mira quién vino"}</p></div></div>`+vAsist()};
 const ctlTableroBase=ctlTablero;
-ctlTablero=function(){ctlTableroBase();const el=$("ctlTab");if(el&&asigDe(quien,hoyISO))el.insertAdjacentHTML("afterbegin",tarjetaMiAsist())};
+ctlTablero=function(){ctlTableroBase();const el=$("ctlTab");if(el&&quien)el.insertAdjacentHTML("afterbegin",tarjetaMiAsist())};
 const ctlNuevoBase=ctlNuevo;
 ctlNuevo=function(col,rec){if(col==="asist"){cerrarOv("ovCtlNuevo");ctlVista="asist";ir("control");return}return ctlNuevoBase(col,rec)};
 /* Permisos por usuario (como en Finanzas): el administrador marca qué puede ver y usar cada uno: Inventario y cada módulo de Control de obra */
@@ -5648,7 +5710,7 @@ SECC_PERM.push("inventario",...CTL_MOD.map(m=>m[0]));Object.assign(SECC_NOM,{inv
 (function(){
   const base=ctlRender;
   ctlRender=function(){
-    if(ctlVista!=="menu"&&secOculta(ctlVista))ctlVista="menu";
+    if(ctlVista!=="menu"&&(secOculta(ctlVista)||!CTL_MOD.some(m=>m[0]===ctlVista)))ctlVista="menu";   // módulo sin permiso o quitado
     const todos=CTL_MOD.slice();CTL_MOD.splice(0,CTL_MOD.length,...todos.filter(m=>!secOculta(m[0])));
     try{return base()}finally{CTL_MOD.splice(0,CTL_MOD.length,...todos)}
   };
