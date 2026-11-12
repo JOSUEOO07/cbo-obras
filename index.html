@@ -633,6 +633,7 @@ body.escribiendo .tabbar,body.escribiendo .fab{display:none!important}
 .as-ob{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.as-hr{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}.as-es{text-align:right;font-weight:700;white-space:nowrap}
 .as-dia.ok .as-es{color:#3FB97A}.as-dia.mal .as-es{color:#E5534B}.as-dia.al .as-es{color:#E8A23A}
 @media (max-width:360px){.as-dia{grid-template-columns:36px minmax(0,1fr) auto}.as-es{grid-column:2/4;text-align:left}}
+.as-borrar{color:#E5534B!important;font-size:.72rem;padding:0;min-height:0}
 .as-sinobra{margin:0;white-space:normal;overflow-wrap:break-word;color:#E8A23A}
 .as-circ{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;justify-items:center;margin:2px 0}
 .as-circ span{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.86rem;border:1.5px solid var(--line);color:var(--muted)}
@@ -1950,6 +1951,17 @@ body.fiesta .usuario i{background:var(--fi-g);background-size:var(--fi-s);color:
 <div class="cargando" id="cargando" hidden>Actualizando…</div>
 
 <script>
+/* CBO Obras y CBO Finanzas están en la misma dirección web (josueoo07.github.io) y compartían la memoria del celular:
+   la conexión, la sesión y los accesos de una pisaban los de la otra (por eso salía "Acción desconocida" al marcar asistencia).
+   Desde aquí todo lo de Obras se guarda aparte, con "obras:" delante. La primera vez se copian sus datos; la conexión solo si es la de Obras. */
+(function(){try{const P="obras:",SPr=Storage.prototype,G=SPr.getItem,S=SPr.setItem,R=SPr.removeItem,LS=window.localStorage;if(!LS)return;
+  const esLS=t=>{try{return t===window.localStorage}catch(e){return false}};
+  if(G.call(LS,P+"_ok")!=="1"){const no=["cbo-sesion","cbo-accesos","cbo-sesion-admin","cbo-personas"],ks=[];
+    for(let i=0;i<LS.length;i++){const k=LS.key(i);if(k&&!k.startsWith(P)&&!no.includes(k))ks.push(k)}
+    ks.forEach(k=>{const v=G.call(LS,k);if(k==="cbo-config"){try{const c=JSON.parse(v);if(!c||!/AKfycbxzSAHO/.test(String(c.url||"")))return}catch(e){return}}if(G.call(LS,P+k)===null)S.call(LS,P+k,v)});
+    S.call(LS,P+"_ok","1")}
+  SPr.getItem=function(k){return G.call(this,esLS(this)?P+k:k)};SPr.setItem=function(k,v){return S.call(this,esLS(this)?P+k:k,v)};SPr.removeItem=function(k){return R.call(this,esLS(this)?P+k:k)};
+}catch(e){}})();
 const IGV=0.18, UIT=5500, LIM_UIT=300;
 const CATS={
   ingreso:["Venta de servicio","Servicio a todo costo","Solo mano de obra","Venta de materiales","Adelanto de obra","Valorización de obra","Mantenimiento","Otros ingresos"],
@@ -5698,7 +5710,7 @@ function filaAsist(n,f){
   const est=!a?"":ent?`<span class="ctl-ch ok">Asistió</span>`:(f<hoyISO?`<span class="ctl-ch mal">Faltó</span>`:`<span class="ctl-ch al">Sin marcar todavía</span>`);
   return `<div class="panel ctl-it"><div class="ctl-it-t"><b>${esc(titulo(n))}</b><small>${fCorta(f)} · ${a?esc(a.obra):"Sin obra asignada"}</small></div>${est}
     ${m.length?`<div class="ctl-res"><span>Entrada <b>${ent?ent.hora:"—"}</b></span><span>Salida <b>${sal?sal.hora:"—"}</b></span>${hrs?`<span>Horas <b>${hrs.toFixed(1)}</b></span>`:""}</div>
-    <div class="ctl-fotos">${m.map(x=>`<figure class="as-m">${x.foto?miniFoto(x.foto):x.firma?miniFoto(x.firma):`<span class="as-hu" title="Confirmó con su huella">${IC_HUELLA}</span>`}<figcaption>${x.tipo==="entrada"?"Entró":"Salió"} ${x.hora}${x.pend?" · enviando…":x.verif==="huella"?" · huella":x.verif==="firma"?" · firma":""} · <a href="${mapaUrl(x.lat,x.lng)}" target="_blank" rel="noopener">mapa</a></figcaption></figure>`).join("")}</div>`:""}</div>`;
+    <div class="ctl-fotos">${m.map(x=>`<figure class="as-m">${x.foto?miniFoto(x.foto):x.firma?miniFoto(x.firma):`<span class="as-hu" title="Confirmó con su huella">${IC_HUELLA}</span>`}<figcaption>${esAdmin()&&!x.pend?`<button type="button" class="btnlink as-borrar" data-asborrar="${escA(x.id)}">Borrar</button> `:""}${x.tipo==="entrada"?"Entró":"Salió"} ${x.hora}${x.pend?" · enviando…":x.verif==="huella"?" · huella":x.verif==="firma"?" · firma":""} · <a href="${mapaUrl(x.lat,x.lng)}" target="_blank" rel="noopener">mapa</a></figcaption></figure>`).join("")}</div>`:""}</div>`;
 }
 // Historial semanal: de lunes a domingo, por persona, con obra, entrada, salida y horas; flechas para ir de semana en semana
 let asSemana=0;
@@ -5768,6 +5780,9 @@ document.addEventListener("click",async e=>{
   const t=e.target;let b;
   if((b=t.closest("[data-marcar]"))){b.disabled=true;try{await marcarAsist(b.dataset.marcar)}finally{b.disabled=false}return}
   if((b=t.closest("[data-asvista]"))){asVista=b.dataset.asvista;ctlRender();return}
+  if((b=t.closest("[data-asborrar]"))){if(!esAdmin())return;const r=(ctl.asist||[]).find(x=>x.id===b.dataset.asborrar);if(!r)return;
+    if(!confirm(`¿Borrar la ${r.tipo} de ${titulo(r.usuario)} de las ${r.hora} (${fCorta(r.fecha)})? Para él quedará como si no hubiera marcado.`))return;
+    ctlBorrarRec("asist",r.id);toast("Marca borrada");return}
   if((b=t.closest("[data-semana]"))){asSemana=Math.min(0,asSemana+ +b.dataset.semana);ctlRender();return}
   if((b=t.closest("[data-fijar]"))){const o=b.dataset.fijar;toast("Buscando tu ubicación…");try{const p=await ubicacionActual();if(p.prec>60&&!confirm(`El GPS tiene poca precisión ahora (±${p.prec} m). ¿Fijar igual?`))return;guardarUbic(o,p.lat,p.lng)}catch(er){toast(er.message)}return}
   if((b=t.closest("[data-mapa]"))){abrirMapa(b.dataset.mapa);return}
