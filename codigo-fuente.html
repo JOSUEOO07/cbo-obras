@@ -1290,6 +1290,33 @@ body.fiesta .usuario i{background:var(--fi-g);background-size:var(--fi-s);color:
   body:is(.fiesta,.especial) .tecl-monto .borra,body:is(.fiesta,.especial) .tecl-monto button:active{background:var(--fi-g);background-size:var(--fi-s);color:#F6F7F9}
 }
 #monto.largo{font-size:clamp(1.5rem,7.5vw,2.2rem)}
+
+/* Entrada con huella */
+.pin-huella{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:999px;border:1.5px solid currentColor;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+.pin-huella[hidden]{display:none}
+.pin-huella svg{width:28px;height:28px;flex:none}
+.bloqueo.solo-huella .teclado,.bloqueo.solo-huella .puntos,.bloqueo.solo-huella #pinOlvido{display:none}
+.bloqueo.solo-huella .pin-huella{padding:18px 26px;font-size:1.1rem}.bloqueo.solo-huella .pin-huella svg{width:46px;height:46px}
+.hu-sim{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(0,0,0,.55);padding:16px}
+.hu-sim[hidden]{display:none}
+.hu-card{background:var(--surface,#fff);border-radius:18px;padding:22px 18px;max-width:360px;width:100%;display:grid;gap:10px;justify-items:center;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.hu-card small{opacity:.75;line-height:1.3}
+.hu-ic svg{width:76px;height:76px;color:var(--brand-2,#7c3aed);transition:color .2s,transform .2s}.hu-ic.ok svg{color:#16a34a;transform:scale(1.08)}
+.fp-card canvas{width:100%;height:auto;aspect-ratio:600/260;background:#fff;border:1.5px dashed #999;border-radius:10px;touch-action:none}
+.fp-bts{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}
+.conf-ops{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.conf-op{display:grid;justify-items:center;gap:6px;padding:14px 8px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--brand-2,#7c3aed) 45%,transparent);background:color-mix(in srgb,var(--brand-2,#7c3aed) 10%,transparent);color:inherit;font:inherit;cursor:pointer}
+.conf-op .hu-ic svg{width:48px;height:48px}
+.acc-met select{max-width:100%}
+.acc-hu{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0 0}.acc-hu svg{width:18px;height:18px;flex:none}
+
+.as-hu{display:grid;place-items:center;width:56px;height:56px;border-radius:10px;background:color-mix(in srgb,var(--brand-2) 16%,transparent)}.as-hu svg{width:32px;height:32px;color:var(--brand-2)}
+.mapa-sheet{max-width:640px}
+.mapa-bus{display:flex;gap:8px}.mapa-bus input{flex:1;min-width:0}
+.mapa-res{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:170px;overflow:auto}.mapa-res .btnlink{text-align:left;white-space:normal;line-height:1.3;padding:6px 0}
+.mapa-mapa{height:min(46vh,420px);border-radius:12px;overflow:hidden;background:color-mix(in srgb,var(--brand-2) 10%,var(--surface))}
+.mapa-sin{padding:16px}
+.mapa-acc{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.mapa-acc .btn{margin-left:auto}
 </style>
 </head>
 <body data-barra="d">
@@ -1712,7 +1739,7 @@ body.fiesta .usuario i{background:var(--fi-g);background-size:var(--fi-s);color:
 <div class="overlay" id="ovQuien" hidden>
   <div class="sheet" style="max-width:420px">
     <h3>¿Quién eres?</h3>
-    <p class="hint" style="margin:0 0 12px">Toca tu nombre y escribe tu PIN. Lo que registres quedará con tu nombre, en la app y en el Excel. Se hace una sola vez en cada equipo.</p>
+    <p class="hint" style="margin:0 0 12px">Toca tu nombre y entra con tu PIN o tu huella, según lo que haya elegido el administrador. Lo que registres quedará con tu nombre, en la app y en el Excel.</p>
     <div style="display:grid;gap:10px" id="quienBtns"></div>
   </div>
 </div>
@@ -3276,7 +3303,7 @@ function pintarQuien(){
 }
 const sinNube=()=>esDemo()&&!window.__nube; // modo de prueba sin servidor: no hay PIN que revisar
 // El PIN de cada uno (solo llega al administrador) se queda en memoria, no se guarda en el equipo
-const usarLista=j=>{PERSONAS=(j.usuarios||[]).map(x=>({n:x.usuario,pin:!!x.tienePin,admin:!!x.admin,p:x.pin||"",b:!!x.bloqueado,oc:x.ocultas||[],d:!!x.descargar,eq:x.equipos||[]}));guardarLS("cbo-personas",PERSONAS.map(({p,...r})=>r));pintarQuien()};
+const usarLista=j=>{PERSONAS=(j.usuarios||[]).map(x=>({n:x.usuario,pin:!!x.tienePin,admin:!!x.admin,p:x.pin||"",b:!!x.bloqueado,oc:x.ocultas||[],d:!!x.descargar,eq:x.equipos||[],m:x.metodo||"pin",hu:x.huellas||[]}));guardarLS("cbo-personas",PERSONAS.map(({p,...r})=>r));pintarQuien()};
 // Nombre del equipo para la lista "Equipos con sesión abierta" del administrador
 let EQUIPO=(()=>{const a=navigator.userAgent||"";const um=(a.match(/Android [\d.]+; ([^;)]+)\)/)||[])[1];const so=/Android/i.test(a)?"Celular Android":/iPhone/i.test(a)?"Apple iPhone":/iPad/i.test(a)?"Apple iPad":/Windows/i.test(a)?"PC Windows":/Mac/i.test(a)?"Apple Mac":"Equipo";const nav=/Edg\//.test(a)?"Edge":/Chrome\//.test(a)?"Chrome":/Safari\//.test(a)?"Safari":/Firefox\//.test(a)?"Firefox":"";let inst=false;try{inst=matchMedia("(display-mode: standalone)").matches}catch{}return so+(inst?" · app instalada":nav?" · "+nav:"")})();
 const sesDe=j=>({u:j.usuario,t:j.token,admin:!!j.admin,ocultas:j.ocultas||[],descargar:!!(j.admin||j.descargar)});
@@ -3380,11 +3407,11 @@ function pintarSesion(){
   const fila=p=>`<li class="usr-li${p.b?" off":""}"><div class="usr-cab"><span><b>${esc(titulo(p.n))}${p.n===quien?" (tú)":""}</b><small>${p.admin?"Administrador":p.b?"Sin acceso":"Usuario"} · PIN <span class="usr-pin" data-pin="${esc(p.p||"")}">••••</span></small></span><button class="btnlink" type="button" data-abrir="${esc(p.n)}">${usrAbierto===p.n?"Cerrar":"Opciones"}</button></div>
     <div class="usr-det"${usrAbierto===p.n?"":" hidden"}><div class="usr-acc">${p.p?`<button class="btnlink" type="button" data-verpin>Ver PIN</button>`:""}${p.n!==quien&&!p.b?`<button class="btnlink" type="button" data-como="${esc(p.n)}">Entrar como</button>`:""}<button class="btnlink" type="button" data-ponpin="${esc(p.n)}">Cambiar PIN</button><button class="btnlink" type="button" data-pinazar="${esc(p.n)}">PIN al azar</button>${!p.admin?`<button class="btnlink" type="button" data-acceso="${esc(p.n)}" data-permitir="${p.b?"1":""}">${p.b?"Dar acceso":"Quitar acceso"}</button>`:""}</div>
     ${!p.admin&&SECC_PERM.length?`<p class="pal-t">Puede ver y usar</p><div class="usr-perm">${SECC_PERM.map(k=>`<label><input type="checkbox" data-secc="${k}"${(p.oc||[]).includes(k)?"":" checked"}> ${SECC_NOM[k]}</label>`).join("")}<label><input type="checkbox" data-desc${p.d?" checked":""}> Descargar reportes</label></div><div class="line"><button class="btn" type="button" data-guardperm="${esc(p.n)}">Guardar permisos</button></div>`:""}
-    <p class="pal-t">Equipos con sesión abierta</p>${(p.eq||[]).length?`<ul class="usr-eq">${p.eq.map(e=>`<li><i class="eq-ic" aria-hidden="true">${icoEq(e.eq)}</i><span>${esc(nomEq(e.eq))}<small>Usuario: ${esc(titulo(p.n))} · Entró ${fhUsr(e.c)} · último uso ${fhUsr(e.u)}</small></span><button class="btnlink" type="button" data-cerrarses="${esc(p.n)}" data-sid="${esc(e.id)}">Cerrar sesión</button></li>`).join("")}</ul>`:`<p class="hint" style="margin:0">Ninguno</p>`}</div></li>`;
+    ${filaAcceso(p)}<p class="pal-t">Equipos con sesión abierta</p>${(p.eq||[]).length?`<ul class="usr-eq">${p.eq.map(e=>`<li><i class="eq-ic" aria-hidden="true">${icoEq(e.eq)}</i><span>${esc(nomEq(e.eq))}<small>Usuario: ${esc(titulo(p.n))} · Entró ${fhUsr(e.c)} · último uso ${fhUsr(e.u)}</small></span><button class="btnlink" type="button" data-cerrarses="${esc(p.n)}" data-sid="${esc(e.id)}">Cerrar sesión</button></li>`).join("")}</ul>`:`<p class="hint" style="margin:0">Ninguno</p>`}</div></li>`;
   const adm=sesion.admin?`<p class="pal-t" style="margin:16px 0 6px">Usuarios</p><ul class="usr-lista">${PERSONAS.map(fila).join("")}</ul>
     <div class="line usr-nuevo"><input id="usrNombre" type="text" placeholder="Nombre y apellido" maxlength="40" autocomplete="off" aria-label="Nombre del usuario nuevo"><button class="btn" type="button" id="usrAgregar">Agregar usuario</button><label class="usr-azar"><input type="checkbox" id="usrAzar"> PIN al azar</label></div>
     <p class="pal-t" style="margin:16px 0 6px">Historial de cambios (solo lo ves tú)</p><button class="btn" type="button" id="verHist">Ver historial</button><ul class="usr-hist" id="usrHist" hidden></ul>`:"";
-  el.innerHTML=`<p class="usr-yo">Entraste como <b>${esc(titulo(quien))}</b> en este equipo.</p>${!sesion.admin&&leerLS(SESA_K,null)?`<div class="line" style="margin-bottom:10px"><button class="btn pri" type="button" id="sesVolver">Volver a ${esc(nomCorto(leerLS(SESA_K,{}).u))}</button></div>`:""}<div class="line"><button class="btnlink" type="button" id="sesSalir">Salir de este equipo</button></div>${adm}`;
+  el.innerHTML=`<p class="usr-yo">Entraste como <b>${esc(titulo(quien))}</b> en este equipo.</p>${!sesion.admin&&leerLS(SESA_K,null)?`<div class="line" style="margin-bottom:10px"><button class="btn pri" type="button" id="sesVolver">Volver a ${esc(nomCorto(leerLS(SESA_K,{}).u))}</button></div>`:""}<div class="line"><button class="btn" type="button" id="sesCambiar">Cambiar de usuario</button><button class="btnlink" type="button" id="sesSalir">Salir de este equipo</button></div>${adm}`;
   const vb=$("sesVolver");if(vb)vb.onclick=volverAdmin;
   $("sesSalir").onclick=salirSesion;
   const ag=$("usrAgregar");if(ag)ag.onclick=agregarUsuario;
@@ -3417,6 +3444,187 @@ async function verHistorial(){
     ul.innerHTML=h.length?h.map(x=>`<li><b>${esc(titulo(x.u)||"—")}</b> · ${esc(x.d)}<small>${fhUsr(x.f)}</small></li>`).join(""):"<li>Aún no hay cambios anotados.</li>";
     ul.hidden=false;b.textContent="Ocultar historial"}catch(e){b.textContent="Ver historial";toast(e.message)}
 }
+/* ===== Entrada instantánea con PIN o huella (igual en todas las apps CBO) =====
+   La primera vez en cada equipo el PIN lo revisa el servidor. Desde ahí el equipo guarda el PIN cifrado (PBKDF2, nunca el PIN)
+   y la sesión de esa persona, así que cambiar de usuario y entrar es al instante. El administrador decide cómo entra cada uno:
+   con PIN, con huella o con los dos (Más → Tu usuario y PIN → Opciones). La huella es la del propio celular (WebAuthn):
+   la app nunca la ve; el celular solo dice "es su dueño". Cada huella queda atada a un celular: otra solo con permiso del admin. */
+const ACC_K="cbo-accesos";
+var escAt=t=>esc(t).replace(/"/g,"&quot;");
+const accTodos=()=>{const a=leerLS(ACC_K,{});return a&&typeof a==="object"?a:{}};
+const accDe=n=>accTodos()[n]||null;
+function accPoner(n,o){const a=accTodos();a[n]=Object.assign({},a[n]||{},o);guardarLS(ACC_K,a)}
+var METODOS={pin:"Con PIN",huella:"Con huella",ambos:"PIN o huella"};
+const metodoDe=n=>{const p=PERSONAS.find(x=>x.n===n);return (p&&p.m)||(accDe(n)||{}).m||"pin"};
+var IC_HUELLA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M12 11v3c0 2.5-.6 4.6-1.8 6.4"/><path d="M8.5 9.6A3.6 3.6 0 0 1 15.6 11v2.2c0 2.6-.5 5-1.5 7.1"/><path d="M5.6 7.7A7 7 0 0 1 19 11v2c0 1.8-.2 3.5-.6 5.1"/><path d="M5 11v2.4c0 1.4-.3 2.7-.9 3.9"/><path d="M7.4 4.4A9.5 9.5 0 0 1 20.2 6.6"/></svg>';
+const b64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const deB64u=s=>{s=String(s||"");return Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4)),c=>c.charCodeAt(0))};
+const reto=()=>crypto.getRandomValues(new Uint8Array(32));
+async function hashLocal(sal,pin){
+  const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(String(pin)),"PBKDF2",false,["deriveBits"]);
+  return b64u(await crypto.subtle.deriveBits({name:"PBKDF2",salt:new TextEncoder().encode("cbo|"+sal),iterations:60000,hash:"SHA-256"},k,256));
+}
+let huellaHay=null;
+async function huellaDisponible(){
+  if(esDemo())return true;
+  if(huellaHay!==null)return huellaHay;
+  try{huellaHay=!!(window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())}catch{huellaHay=false}
+  return huellaHay;
+}
+huellaDisponible();
+// Vista previa: el simulador no tiene lector, así que muestra cómo se ve el aviso del celular
+function simHuella(texto){
+  return new Promise(ok=>{
+    let d=$("simHuella");if(!d){d=document.createElement("div");d.id="simHuella";d.className="hu-sim";document.body.appendChild(d)}
+    d.innerHTML=`<div class="hu-card" role="dialog" aria-label="${escAt(texto)}"><span class="hu-ic">${IC_HUELLA}</span><b>${esc(texto)}</b><small>Vista previa: así aparece el lector de huella del celular.</small><button type="button" class="btn" id="huSimOk">Tocar el sensor</button><button type="button" class="btnlink" id="huSimNo">Cancelar</button></div>`;
+    d.hidden=false;
+    const fin=v=>{d.hidden=true;ok(v)};
+    $("huSimOk").onclick=()=>{d.querySelector(".hu-ic").classList.add("ok");setTimeout(()=>fin(true),280)};
+    $("huSimNo").onclick=()=>fin(false);
+    if(window.__huAuto)setTimeout(()=>fin(window.__huAuto==="si"),20);
+  });
+}
+const APP_NOM=typeof MODO_OBRAS!=="undefined"&&MODO_OBRAS?"CBO Obras":"CBO Finanzas";
+async function huellaRegistrar(n){
+  if(esDemo()){if(!await simHuella("Registra tu huella"))throw new Error("No se registró la huella.");return "demo-"+n}
+  try{
+    const c=await navigator.credentials.create({publicKey:{challenge:reto(),rp:{name:APP_NOM,id:location.hostname},
+      user:{id:new TextEncoder().encode(String(n).slice(0,60)),name:n,displayName:titulo(n)},
+      pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required",residentKey:"discouraged"},timeout:60000,attestation:"none"}});
+    return b64u(c.rawId);
+  }catch(e){throw new Error(e&&e.name==="NotAllowedError"?"Se canceló el registro de la huella.":"Este celular no pudo registrar la huella.")}
+}
+async function huellaVerificar(cred){
+  if(esDemo())return simHuella("Pon tu dedo en el sensor");
+  try{await navigator.credentials.get({publicKey:{challenge:reto(),rpId:location.hostname,allowCredentials:[{type:"public-key",id:deB64u(cred),transports:["internal"]}],userVerification:"required",timeout:60000}});return true}
+  catch(e){return false}
+}
+// Registra la huella en este celular y el servidor la ata a esta persona
+async function registrarHuellaDe(n){
+  const cred=await huellaRegistrar(n);
+  // En la vista previa solo se avisa al servidor de prueba si la sesión es de él
+  if(!sinNube()&&!(esDemo()&&!/^sim~/.test(String(sesion&&sesion.t||""))))await api("huellaReg",{cred,equipo:EQUIPO});
+  accPoner(n,{cred});return cred;
+}
+// Firma con el dedo: solo si el celular no tiene lector de huella
+function pedirFirma(n){
+  return new Promise(ok=>{
+    let d=$("asFirmaPad");if(!d){d=document.createElement("div");d.id="asFirmaPad";d.className="hu-sim";document.body.appendChild(d)}
+    d.innerHTML=`<div class="hu-card fp-card"><b>Firma de ${esc(nomCorto(n))}</b><small>Firma con tu dedo dentro del recuadro.</small><canvas id="fpLienzo" width="600" height="260" aria-label="Recuadro para firmar"></canvas><div class="line fp-bts"><button type="button" class="btnlink" id="fpBorrar">Borrar</button><button type="button" class="btnlink" id="fpNo">Cancelar</button><button type="button" class="btn" id="fpOk" disabled>Listo</button></div></div>`;
+    d.hidden=false;
+    const cv=$("fpLienzo"),cx=cv.getContext("2d");let dib=false,trazo=0;
+    cx.lineWidth=5;cx.lineCap="round";cx.lineJoin="round";cx.strokeStyle="#111";
+    const pt=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height]};
+    cv.onpointerdown=e=>{dib=true;try{cv.setPointerCapture(e.pointerId)}catch{};const [x,y]=pt(e);cx.beginPath();cx.moveTo(x,y)};
+    cv.onpointermove=e=>{if(!dib)return;const [x,y]=pt(e);cx.lineTo(x,y);cx.stroke();if(++trazo>8)$("fpOk").disabled=false};
+    cv.onpointerup=cv.onpointercancel=()=>{dib=false};
+    const fin=v=>{d.hidden=true;ok(v)};
+    $("fpBorrar").onclick=()=>{cx.clearRect(0,0,cv.width,cv.height);trazo=0;$("fpOk").disabled=true};
+    $("fpNo").onclick=()=>fin(null);
+    $("fpOk").onclick=()=>{const c=document.createElement("canvas");c.width=300;c.height=130;const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,300,130);g.drawImage(cv,0,0,300,130);fin(c.toDataURL("image/jpeg",.7))};
+  });
+}
+// Para marcar asistencia el trabajador elige: huella o firma (si el celular no tiene lector, solo firma)
+function elegirConfirmacion(){
+  return new Promise(ok=>{
+    let d=$("elegirConf");if(!d){d=document.createElement("div");d.id="elegirConf";d.className="hu-sim";document.body.appendChild(d)}
+    d.innerHTML=`<div class="hu-card"><b>¿Cómo quieres confirmar?</b><small>Elige la que te sea más cómoda.</small><div class="conf-ops"><button type="button" class="conf-op" data-conf="huella"><span class="hu-ic">${IC_HUELLA}</span><b>Con huella</b></button><button type="button" class="conf-op" data-conf="firma"><span class="hu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c3-1 4-8 6-8s0 7 2 7 2-4 4-4 1 3 3 3 2-1 3-2"/><path d="M3 21h18"/></svg></span><b>Con firma</b></button></div><button type="button" class="btnlink" id="confNo">Cancelar</button></div>`;
+    d.hidden=false;
+    const fin=v=>{d.hidden=true;ok(v)};
+    d.querySelectorAll("[data-conf]").forEach(b=>b.onclick=()=>fin(b.dataset.conf));
+    $("confNo").onclick=()=>fin(null);
+    if(window.__confAuto)setTimeout(()=>fin(window.__confAuto),20);
+  });
+}
+async function verificarPersona(n,prueba,aviso){
+  aviso=aviso||toast;
+  if(prueba)return {verif:"firma",firma:String(prueba)}; // solo la revisión automática
+  const hay=await huellaDisponible();
+  const modo=hay?await elegirConfirmacion():"firma";
+  if(!modo)throw new Error("Cancelaste. Vuelve a tocar Marcar cuando quieras.");
+  if(modo==="huella"){
+    let cred=(accDe(n)||{}).cred;
+    if(!cred){aviso("Primera vez en este celular: registra tu huella.",true);cred=await registrarHuellaDe(n)}
+    aviso("Pon tu dedo en el sensor…",true);
+    if(!await huellaVerificar(cred))throw new Error("No se reconoció tu huella. Vuelve a intentar.");
+    return {verif:"huella",cred};
+  }
+  aviso(hay?"Firma con tu dedo.":"Este celular no tiene lector de huella: firma con tu dedo.",true);
+  const f=await pedirFirma(n);if(!f)throw new Error("Sin firma no se marca. Vuelve a intentar.");
+  return {verif:"firma",firma:f};
+}
+
+// --- Teclado del PIN con botón de huella ---
+let pinHuellaFn=null;
+(function(){
+  const b=document.createElement("button");b.type="button";b.id="pinHuella";b.className="pin-huella";b.hidden=true;
+  b.innerHTML=`${IC_HUELLA}<span>Entrar con huella</span>`;
+  $("pinCancelar").before(b);
+  b.onclick=async()=>{if(!pinHuellaFn)return;const r=await pinHuellaFn();if(r)cerrarPin(r);else errorPin("No se reconoció la huella. Vuelve a intentar.")};
+})();
+const abrirPinBase=abrirPin;
+abrirPin=function(modo,titulo,check){pinHuellaFn=null;$("pinHuella").hidden=true;$("bloqueo").classList.remove("solo-huella");return abrirPinBase(modo,titulo,check)};
+
+// --- Entrar: primero lo guardado en este equipo (al instante); si no, el servidor ---
+async function revisarPinDe(n,pin){
+  const a=accDe(n)||{};
+  if(a.h&&a.s&&a.t&&await hashLocal(a.s,pin)===a.h)return Object.assign({},a.ses||{},{u:n,t:a.t});
+  const s=await pedirEntrada(n,pin);
+  const sal=b64u(reto());
+  accPoner(n,{s:sal,h:await hashLocal(sal,pin),t:s.t,ses:{admin:!!s.admin,ocultas:s.ocultas||[],descargar:!!s.descargar},m:metodoDe(n)});
+  return s;
+}
+entrarComo=async function(n){
+  const m=metodoDe(n),a=accDe(n)||{},hay=await huellaDisponible();
+  const conHuella=m!=="pin"&&!!a.cred&&!!a.t&&hay;
+  const guardada=()=>Object.assign({},a.ses||{},{u:n,t:a.t});
+  const tit=m==="huella"&&!conHuella?`${nomCorto(n)}, primera vez en este celular: escribe tu PIN`:`${nomCorto(n)}, escribe tu PIN`;
+  const p=abrirPin("externo",conHuella&&m==="huella"?`${nomCorto(n)}, pon tu dedo`:tit,pin=>revisarPinDe(n,pin));
+  if(conHuella){
+    pinHuellaFn=async()=>(await huellaVerificar(a.cred))?guardada():null;
+    $("pinHuella").hidden=false;
+    if(m==="huella")$("bloqueo").classList.add("solo-huella");
+    setTimeout(()=>{if(pinHuellaFn&&!$("bloqueo").hidden)$("pinHuella").click()},60);
+  }
+  const s=await p;
+  if(!s||!s.t)return;
+  ponerSesion(Object.assign({u:n},s));cerrarOv("ovQuien");toast("Entraste como "+titulo(s.u||n));
+  perfilUlt=0;sincPerfil(true);if(s.admin)cargarUsuarios();cargar();
+  // Si el administrador pidió huella y este celular todavía no la tiene, se registra ahora
+  if(m!=="pin"&&hay&&!(accDe(n)||{}).cred){try{await registrarHuellaDe(n);toast("Huella registrada. La próxima vez entras con tu dedo.")}catch(e){toast(e.message)}}
+};
+// Si el servidor rechaza la sesión guardada (PIN cambiado, acceso quitado), se olvida en este equipo
+let cambiandoUsr=false;
+const perderSesionBase=perderSesion;
+perderSesion=function(){if(sesion&&!cambiandoUsr){const a=accDe(sesion.u);if(a&&a.t)accPoner(sesion.u,{t:""})}return perderSesionBase()};
+function cambiarUsuario(){cambiandoUsr=true;try{salirSesion()}finally{cambiandoUsr=false}}
+
+// --- Panel del administrador: cómo entra cada uno y su huella ---
+function filaAcceso(p){
+  if(!METODOS||!escAt)return ""; // aún cargando
+  const hu=p.hu||[];
+  return `<p class="pal-t">Cómo entra a la app</p><div class="line acc-met"><select data-metodo="${escAt(p.n)}" aria-label="Cómo entra ${escAt(titulo(p.n))}">${Object.entries(METODOS).map(([k,t])=>`<option value="${k}"${(p.m||"pin")===k?" selected":""}>${t}</option>`).join("")}</select></div>
+    <p class="hint acc-hu">${hu.length?`${IC_HUELLA}<span>Huella en: ${hu.map(h=>esc(nomEq(h.eq))).join(", ")}</span> <button class="btnlink" type="button" data-quitahu="${escAt(p.n)}">Quitar huella</button>`:(p.m||"pin")==="pin"?"Entra solo con su PIN.":"Su huella se registra sola la primera vez que entre en su celular."}</p>`;
+}
+async function ponerMetodo(n,m){
+  if(sinNube()){const p=PERSONAS.find(x=>x.n===n);if(p)p.m=m;accPoner(n,{m});guardarLS("cbo-personas",PERSONAS.map(({p,...r})=>r));pintarSesion();toast(`${nomCorto(n)}: ${METODOS[m]}`);return}
+  try{usarLista(await api("metodo",{usuario:n,metodo:m}));toast(`${nomCorto(n)} entrará: ${METODOS[m].toLowerCase()}.`)}catch(e){toast(e.message)}
+}
+async function quitarHuella(n){
+  if(!confirm(`¿Quitar la huella de ${titulo(n)}? Tendrá que registrarla de nuevo en su celular.`))return;
+  if(n===quien||accDe(n))accPoner(n,{cred:""});
+  if(sinNube()){const p=PERSONAS.find(x=>x.n===n);if(p)p.hu=[];pintarSesion();toast("Huella quitada");return}
+  try{usarLista(await api("quitarHuella",{usuario:n}));toast(`Huella de ${nomCorto(n)} quitada.`)}catch(e){toast(e.message)}
+}
+const pintarSesionBase=pintarSesion;
+pintarSesion=function(){
+  pintarSesionBase();const el=$("quienSeg");if(!el)return;
+  const sc=$("sesCambiar");if(sc)sc.onclick=cambiarUsuario;
+  el.querySelectorAll("[data-metodo]").forEach(s=>s.onchange=()=>ponerMetodo(s.dataset.metodo,s.value));
+  el.querySelectorAll("[data-quitahu]").forEach(b=>b.onclick=()=>quitarHuella(b.dataset.quitahu));
+};
+
 document.addEventListener("click",e=>{const av=e.target.closest("[data-av]");if(av){ponerAv(av.dataset.av);return}const b=e.target.closest("[data-entrar]");if(b)entrarComo(b.dataset.entrar);else if(e.target.id==="ovPerfil"||e.target.id==="perfilCerrar")cerrarOv("ovPerfil")});
 pintarQuien();
 const sinCeros=v=>String(v||"").trim().replace(/^0+/,"");
@@ -5305,10 +5513,11 @@ $("ctlOps").innerHTML=[["material","Material","Entra, se usa o sobra",'<path d="
 // Al cambiar de sección se pinta el tablero o el control
 const irBase=ir; ir=function(s){irBase(s);ctlPintar()};
 
-/* ===== CBO Obras: asistencia con GPS y foto =====
-   El administrador fija la ubicación y el radio de cada obra (ubic) y asigna una obra por día a cada usuario (asig).
-   El trabajador marca entrada o salida: solo vale si su celular está dentro del radio de la obra de ese día, con una foto suya
-   tomada en el momento. La hora la pone el servidor. Registros: asist {id, usuario, obra, fecha, tipo, hora, lat, lng, dist, foto}. */
+/* ===== CBO Obras: asistencia con GPS y huella =====
+   El administrador fija la ubicación y el radio de cada obra (ubic), desde el mapa sin tener que ir, y asigna una obra por día
+   a cada usuario (asig). El trabajador marca entrada o salida: solo vale si su celular está dentro del radio de la obra de ese
+   día y confirma con su huella (o firma, si el celular no tiene lector). Se ve al instante; el servidor revisa de nuevo y pone
+   la hora oficial. Registros: asist {id, usuario, obra, fecha, tipo, hora, lat, lng, dist, verif, firma?}. */
 CTL_MOD.unshift(["asist","Asistencia","Quién llegó, a qué obra y a qué hora",'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6"/><path d="M15 18l2 2 4-4"/>']);
 CTL_NOM.asist="Asistencia";
 ["asig","ubic","asist"].forEach(k=>{if(!Array.isArray(ctl[k]))ctl[k]=[]});
@@ -5323,9 +5532,16 @@ const horaAhora=()=>new Date().toTimeString().slice(0,5);
 function ubicacionActual(){
   return new Promise((ok,no)=>{if(!navigator.geolocation)return no(new Error("Este celular no tiene GPS disponible."));
     navigator.geolocation.getCurrentPosition(p=>ok({lat:p.coords.latitude,lng:p.coords.longitude,prec:Math.round(p.coords.accuracy||0)}),
-      e=>no(new Error(e&&e.code===1?"Debes permitir la ubicación para marcar asistencia.":"No se pudo leer tu ubicación. Sal a un lugar abierto y vuelve a intentar.")),{enableHighAccuracy:true,timeout:20000,maximumAge:0})});
+      e=>no(new Error(e&&e.code===1?"Debes permitir la ubicación para marcar asistencia.":"No se pudo leer tu ubicación. Sal a un lugar abierto y vuelve a intentar.")),{enableHighAccuracy:true,timeout:15000,maximumAge:5000})});
 }
-function tomarSelfie(){return new Promise(ok=>{const i=document.createElement("input");i.type="file";i.accept="image/*";i.capture="user";i.onchange=()=>ok(i.files[0]||null);i.click()})}
+// El GPS se prende al mostrar "Mi asistencia" (si ya dio permiso), así al tocar Marcar la ubicación ya está lista
+let gpsUlt=null,gpsWatch=null;
+function gpsPrender(){
+  if(gpsWatch!==null||!navigator.geolocation||!navigator.permissions)return;
+  navigator.permissions.query({name:"geolocation"}).then(st=>{if(st.state!=="granted"||gpsWatch!==null)return;
+    gpsWatch=navigator.geolocation.watchPosition(p=>{gpsUlt={lat:p.coords.latitude,lng:p.coords.longitude,prec:Math.round(p.coords.accuracy||0),t:Date.now()}},()=>{},{enableHighAccuracy:true,maximumAge:5000});
+    setTimeout(()=>{try{navigator.geolocation.clearWatch(gpsWatch)}catch{}gpsWatch=null},180000)}).catch(()=>{});
+}
 function avisoAsist(t,ok){const e=$("asMsg");if(e){e.textContent=t;e.className="ctl-ch "+(ok?"ok":"mal");e.hidden=false}else toast(t)}
 // Marcar entrada o salida (fotoPrueba solo lo usa la revisión automática)
 async function marcarAsist(tipo,fotoPrueba){
@@ -5334,29 +5550,36 @@ async function marcarAsist(tipo,fotoPrueba){
   const u=ubicDe(a.obra);
   if(!u){avisoAsist(`La obra ${a.obra} todavía no tiene ubicación. Avisa al administrador.`);return false}
   avisoAsist("Buscando tu ubicación…",true);
-  let pos;try{pos=await ubicacionActual()}catch(e){avisoAsist(e.message);return false}
+  let pos=gpsUlt&&Date.now()-gpsUlt.t<15000&&gpsUlt.prec<=40?gpsUlt:null;
+  if(!pos){try{pos=await ubicacionActual()}catch(e){avisoAsist(e.message);return false}}
   const d=distM(pos.lat,pos.lng,u.lat,u.lng),tol=(+u.radio||30)+Math.min(pos.prec||0,20);
   if(d>tol){avisoAsist(`No estás en ${a.obra}: estás a ${d>=1000?(d/1000).toFixed(1)+" km":Math.round(d)+" m"}. Tienes que estar en la obra para marcar.`);try{navigator.vibrate&&navigator.vibrate([60,40,60])}catch{};return false}
-  let foto=fotoPrueba||"";
-  if(!foto){avisoAsist("Estás en la obra. Tómate una foto para marcar.",true);const f=await tomarSelfie();if(!f){avisoAsist("Sin foto no se marca. Vuelve a intentar.");return false}foto=await fotoLiviana(f)}
-  const rec={id:ctlId(),usuario:quien,obra:a.obra,fecha:hoyISO,tipo,hora:horaAhora(),lat:+pos.lat.toFixed(6),lng:+pos.lng.toFixed(6),prec:pos.prec,dist:Math.round(d),foto,ts:Date.now(),por:quien};
-  if(!esDemo()&&cfg){try{const j=await api("ctlGuardar",{col:"asist",rec});if(j.hora)rec.hora=j.hora;if(j.fecha)rec.fecha=j.fecha;if(j.id)rec.id=j.id}catch(e){avisoAsist(e.message);return false}}
-  ctl.asist.push(rec);ctlGuardarLS();celebrarCtl(tipo==="entrada"?"Entrada registrada":"Salida registrada",`${a.obra} · ${rec.hora}`);ctlPintar();avisoAsist(`${tipo==="entrada"?"Entrada":"Salida"} registrada a las ${rec.hora} en ${a.obra}.`,true);return true;
+  let v;try{v=await verificarPersona(quien,fotoPrueba,avisoAsist)}catch(e){avisoAsist(e.message);return false}
+  const rec={id:ctlId(),usuario:quien,obra:a.obra,fecha:hoyISO,tipo,hora:horaAhora(),lat:+pos.lat.toFixed(6),lng:+pos.lng.toFixed(6),prec:pos.prec,dist:Math.round(d),verif:v.verif,ts:Date.now(),por:quien};
+  if(v.firma)rec.firma=v.firma;
+  // Queda registrada al instante. El servidor revisa otra vez el área y pone la hora oficial; si no vale, se quita y avisa.
+  const enNube=!esDemo()&&!!cfg;if(enNube)rec.pend=true;
+  ctl.asist.push(rec);ctlGuardarLS();celebrarCtl(tipo==="entrada"?"Entrada registrada":"Salida registrada",`${a.obra} · ${rec.hora}`);ctlPintar();avisoAsist(`${tipo==="entrada"?"Entrada":"Salida"} registrada a las ${rec.hora} en ${a.obra}.`,true);
+  if(enNube){const env=Object.assign({},rec,{cred:v.cred||""});delete env.pend;
+    api("ctlGuardar",{col:"asist",rec:env}).then(j=>{if(j.hora)rec.hora=j.hora;if(j.fecha)rec.fecha=j.fecha;if(j.id)rec.id=j.id;delete rec.pend;ctlGuardarLS();ctlPintar()})
+      .catch(e=>{const id0=rec.id;ctl.asist=(ctl.asist||[]).filter(x=>x!==rec&&x.id!==id0);ctlGuardarLS();ctlPintar();const m=e&&e.code?e.message:"Sin internet: tu marca no llegó. Vuelve a marcar cuando tengas señal.";avisoAsist(m);toast(m)})}
+  return true;
 }
 // Tarjeta "Mi asistencia de hoy" (arriba del tablero y en el módulo)
 function tarjetaMiAsist(){
+  if(asigDe(quien,hoyISO))setTimeout(gpsPrender,0);
   const a=asigDe(quien,hoyISO),m=marcasDe(quien,hoyISO),ent=m.find(x=>x.tipo==="entrada"),sal=[...m].reverse().find(x=>x.tipo==="salida");
   return `<div class="panel ctl-it ctl-mia"><div class="ctl-it-t"><b>Mi asistencia de hoy</b><small>${a?"Hoy te toca: "+esc(a.obra):"Hoy no tienes obra asignada"}</small></div>
-    ${a?`<div class="ctl-res"><span>Entrada <b>${ent?ent.hora:"—"}</b></span><span>Salida <b>${sal?sal.hora:"—"}</b></span></div><div class="ctl-bts"><button type="button" class="btn" data-marcar="entrada">Marcar entrada</button><button type="button" class="btn2" data-marcar="salida">Marcar salida</button></div>`:""}
+    ${a?`<div class="ctl-res"><span>Entrada <b>${ent?ent.hora:"—"}</b></span><span>Salida <b>${sal?sal.hora:"—"}</b></span></div><div class="ctl-bts"><button type="button" class="btn" data-marcar="entrada">Marcar entrada</button><button type="button" class="btn2" data-marcar="salida">Marcar salida</button></div><p class="hint as-como">Marca estando en la obra y confirma con tu huella o tu firma.</p>`:""}
     <p class="ctl-ch" id="asMsg" hidden></p></div>`;
 }
 function filaAsist(n,f){
   const a=asigDe(n,f),m=marcasDe(n,f),ent=m.find(x=>x.tipo==="entrada"),sal=[...m].reverse().find(x=>x.tipo==="salida");
   const hrs=ent&&sal?Math.max(0,(+sal.hora.slice(0,2)*60+ +sal.hora.slice(3))-(+ent.hora.slice(0,2)*60+ +ent.hora.slice(3)))/60:0;
-  const est=!a?"":ent?`<span class="ctl-ch ok">Asistió</span>`:(f<hoyISO?`<span class="ctl-ch mal">Faltó</span>`:`<span class="ctl-ch al">No marca aún</span>`);
+  const est=!a?"":ent?`<span class="ctl-ch ok">Asistió</span>`:(f<hoyISO?`<span class="ctl-ch mal">Faltó</span>`:`<span class="ctl-ch al">Sin marcar todavía</span>`);
   return `<div class="panel ctl-it"><div class="ctl-it-t"><b>${esc(titulo(n))}</b><small>${fCorta(f)} · ${a?esc(a.obra):"Sin obra asignada"}</small></div>${est}
     ${m.length?`<div class="ctl-res"><span>Entrada <b>${ent?ent.hora:"—"}</b></span><span>Salida <b>${sal?sal.hora:"—"}</b></span>${hrs?`<span>Horas <b>${hrs.toFixed(1)}</b></span>`:""}</div>
-    <div class="ctl-fotos">${m.map(x=>`<figure class="as-m">${miniFoto(x.foto)}<figcaption>${x.tipo==="entrada"?"Entró":"Salió"} ${x.hora} · <a href="${mapaUrl(x.lat,x.lng)}" target="_blank" rel="noopener">mapa</a></figcaption></figure>`).join("")}</div>`:""}</div>`;
+    <div class="ctl-fotos">${m.map(x=>`<figure class="as-m">${x.foto?miniFoto(x.foto):x.firma?miniFoto(x.firma):`<span class="as-hu" title="Confirmó con su huella">${IC_HUELLA}</span>`}<figcaption>${x.tipo==="entrada"?"Entró":"Salió"} ${x.hora}${x.pend?" · enviando…":x.verif==="huella"?" · huella":x.verif==="firma"?" · firma":""} · <a href="${mapaUrl(x.lat,x.lng)}" target="_blank" rel="noopener">mapa</a></figcaption></figure>`).join("")}</div>`:""}</div>`;
 }
 // Historial semanal: de lunes a domingo, por persona, con obra, entrada, salida y horas; flechas para ir de semana en semana
 let asSemana=0;
@@ -5385,14 +5608,17 @@ function vAsist(){
   if(asVista==="asignar"){const obras=invObrasLista();
     return seg+`<label class="lbl-s">Día<input type="date" id="asFecha" value="${asFecha}"></label><p class="hint">Elige la obra de cada persona para ese día. Solo podrá marcar estando en esa obra.</p><div class="ctl-lista">${gente.map(p=>{const a=asigDe(p.n,asFecha);
       return `<div class="panel ctl-it ctl-asig"><b>${esc(titulo(p.n))}</b><select data-asig="${escA(p.n)}" aria-label="Obra de ${escA(titulo(p.n))}"><option value="">Sin obra</option>${obras.map(o=>`<option${a&&ctlU(a.obra)===ctlU(o)?" selected":""}>${esc(o)}</option>`).join("")}</select></div>`}).join("")}</div>`}
-  if(asVista==="obras")return seg+`<p class="hint">Fija dónde está cada obra y el radio en el que se puede marcar. Lo más exacto es "Fijar aquí" estando en la obra.</p><div class="ctl-lista">${invObrasLista().map(o=>{const u=ubicDe(o);
+  if(asVista==="obras")return seg+`<p class="hint">Fija dónde está cada obra sin tener que ir: elígela en el mapa, búscala por su dirección o pega el enlace de Google Maps. El radio es la zona donde se podrá marcar.</p><div class="ctl-lista">${invObrasLista().map(o=>{const u=ubicDe(o);
       return `<div class="panel ctl-it"><div class="ctl-it-t"><b>${esc(o)}</b><small>${u?`Ubicación fijada · radio ${u.radio} m · <a href="${mapaUrl(u.lat,u.lng)}" target="_blank" rel="noopener">ver en el mapa</a>`:"Sin ubicación todavía"}</small></div>
-        <div class="ctl-bts"><button type="button" class="btn" data-fijar="${escA(o)}">Fijar aquí</button><button type="button" class="btn2" data-enlace="${escA(o)}">Pegar enlace de Google Maps</button><select data-radio="${escA(o)}" aria-label="Radio">${RADIOS.map(r=>`<option value="${r}"${(u&&+u.radio===r)||(!u&&r===30)?" selected":""}>Radio ${r} m</option>`).join("")}</select></div></div>`}).join("")||vacio("Primero crea una obra.")}</div>`;
+        <div class="ctl-bts"><button type="button" class="btn" data-mapa="${escA(o)}">${u?"Cambiar en el mapa":"Elegir en el mapa"}</button><button type="button" class="btn2" data-enlace="${escA(o)}">Pegar enlace</button><button type="button" class="btn2" data-fijar="${escA(o)}">Estoy aquí</button><select data-radio="${escA(o)}" aria-label="Radio">${RADIOS.map(r=>`<option value="${r}"${(u&&+u.radio===r)||(!u&&r===30)?" selected":""}>Radio ${r} m</option>`).join("")}</select></div></div>`}).join("")||vacio("Primero crea una obra.")}</div>`;
   return seg+semanaHTML(gente);
 }
-function guardarUbic(o,lat,lng){const s=document.querySelector(`[data-radio="${CSS.escape(o)}"]`),r=+(s&&s.value)||30;
+function guardarUbic(o,lat,lng,rr){const s=document.querySelector(`[data-radio="${CSS.escape(o)}"]`),r=+rr||+(s&&s.value)||30;
   ctlGuardarRec("ubic",{id:"ubic:"+ctlU(o),obra:o,lat:+(+lat).toFixed(6),lng:+(+lng).toFixed(6),radio:r,ts:Date.now(),por:quien},["Ubicación fijada",o+" · radio "+r+" m"])}
-function coordsDeEnlace(t){t=String(t||"");const m=t.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||t.match(/[?&](?:q|query|ll)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/)||t.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)||t.match(/^\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*$/);return m?[+m[1],+m[2]]:null}
+// Lee las coordenadas de casi cualquier enlace de Google Maps (lugar, búsqueda, cómo llegar) o de "-12.04, -77.04"
+function coordsDeEnlace(t){t=String(t||"");try{t=decodeURIComponent(t.replace(/\+/g," "))}catch{}
+  const P=[/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,/@(-?\d+\.\d+),(-?\d+\.\d+)/,/[?&](?:q|query|ll|sll|center|destination|daddr)=(?:loc:)?\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/,/\/(?:search|place|dir)\/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/,/^\s*(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$/];
+  for(const r of P){const m=t.match(r);if(m){const a=+m[1],b=+m[2];if(Math.abs(a)<=90&&Math.abs(b)<=180&&(a||b))return [a,b]}}return null}
 // La vista de Asistencia se dibuja dentro del Control de obra; el tablero muestra "Mi asistencia de hoy"
 const ctlRenderBase=ctlRender;
 ctlRender=function(){if(ctlVista!=="asist")return ctlRenderBase();const el=$("ctlApp");if(!el)return;
@@ -5407,7 +5633,11 @@ document.addEventListener("click",async e=>{
   if((b=t.closest("[data-asvista]"))){asVista=b.dataset.asvista;ctlRender();return}
   if((b=t.closest("[data-semana]"))){asSemana=Math.min(0,asSemana+ +b.dataset.semana);ctlRender();return}
   if((b=t.closest("[data-fijar]"))){const o=b.dataset.fijar;toast("Buscando tu ubicación…");try{const p=await ubicacionActual();if(p.prec>60&&!confirm(`El GPS tiene poca precisión ahora (±${p.prec} m). ¿Fijar igual?`))return;guardarUbic(o,p.lat,p.lng)}catch(er){toast(er.message)}return}
-  if((b=t.closest("[data-enlace]"))){const o=b.dataset.enlace,v=prompt(`Pega el enlace de Google Maps de ${o} (o las coordenadas, ej.: -12.0464, -77.0428)`);if(!v)return;const c=coordsDeEnlace(v);if(!c){toast("No encontré las coordenadas en ese enlace. Abre el lugar en Google Maps y copia el enlace de la barra de direcciones.");return}guardarUbic(o,c[0],c[1]);return}
+  if((b=t.closest("[data-mapa]"))){abrirMapa(b.dataset.mapa);return}
+  if((b=t.closest("[data-enlace]"))){const o=b.dataset.enlace,v=prompt(`Pega el enlace de Google Maps de ${o} (o las coordenadas, ej.: -12.0464, -77.0428)`);if(!v)return;
+    toast("Leyendo el enlace…");let c;try{c=await coordsDeTexto(v)}catch(er){toast(er.message);return}
+    if(!c){toast("No encontré el lugar en ese enlace. Usa \"Elegir en el mapa\" y búscalo por su dirección.");return}
+    abrirMapa(o,c[0],c[1]);return}
 });
 document.addEventListener("change",e=>{
   const t=e.target;
@@ -5417,6 +5647,89 @@ document.addEventListener("change",e=>{
     ctlGuardarRec("asig",{id,usuario:n,fecha:asFecha,obra:t.value,ts:Date.now(),por:quien});toast(`${nomCorto(n)} → ${t.value} el ${fCorta(asFecha)}`);return}
   if(t.dataset&&t.dataset.radio!==undefined){const u=ubicDe(t.dataset.radio);if(u){u.radio=+t.value;ctlGuardarRec("ubic",u);toast(`Radio de ${u.obra}: ${u.radio} m`)}}
 });
+
+/* ===== CBO Obras: elegir la ubicación de la obra en un mapa, sin estar ahí =====
+   Buscas la dirección, pegas el enlace de Google Maps (también los cortos maps.app.goo.gl, que abre el servidor)
+   o tocas el mapa. El punto se puede arrastrar y el círculo muestra el radio donde se podrá marcar. */
+let LEAF=null,mapaObj=null,mapaPin=null,mapaCirc=null,mapaObra="",mapaPunto=null;
+function cargarLeaflet(){
+  if(window.L&&L.map)return Promise.resolve(L);
+  if(LEAF)return LEAF;
+  LEAF=new Promise((ok,no)=>{
+    const c=document.createElement("link");c.rel="stylesheet";c.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(c);
+    const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    s.onload=()=>ok(window.L);s.onerror=()=>{LEAF=null;no(new Error("No se pudo abrir el mapa. Revisa tu internet."))};document.head.appendChild(s);
+  });
+  return LEAF;
+}
+(function(){
+  const d=document.createElement("div");d.className="overlay";d.id="ovMapa";d.hidden=true;
+  d.innerHTML=`<div class="sheet mapa-sheet"><h3><span id="mapaTit">Ubicación de la obra</span> <button type="button" class="x" id="mapaX" aria-label="Cerrar">✕</button></h3>
+    <form id="mapaBus" class="mapa-bus" novalidate><input id="mapaQ" type="search" enterkeyhint="search" placeholder="Dirección o enlace de Maps" autocomplete="off" aria-label="Dirección o enlace de Google Maps"><button class="btn" type="submit">Buscar</button></form>
+    <ul id="mapaRes" class="mapa-res" hidden></ul>
+    <div id="mapaMapa" class="mapa-mapa" aria-label="Mapa"></div>
+    <p class="hint" id="mapaHint">Toca el mapa donde está la obra. Puedes arrastrar el punto para afinarlo.</p>
+    <div class="mapa-acc"><select id="mapaRadio" aria-label="Radio">${RADIOS.map(r=>`<option value="${r}">Radio ${r} m</option>`).join("")}</select><button type="button" class="btn2" id="mapaAqui">Estoy aquí</button><button type="button" class="btn" id="mapaOk" disabled>Guardar ubicación</button></div></div>`;
+  document.body.appendChild(d);
+  $("mapaX").onclick=()=>cerrarOv("ovMapa");
+  d.addEventListener("click",e=>{if(e.target===d)cerrarOv("ovMapa")});
+  $("mapaBus").onsubmit=e=>{e.preventDefault();buscarEnMapa($("mapaQ").value)};
+  $("mapaRadio").onchange=()=>{if(mapaCirc)mapaCirc.setRadius(+$("mapaRadio").value)};
+  $("mapaAqui").onclick=async()=>{$("mapaHint").textContent="Buscando tu ubicación…";try{const p=await ubicacionActual();ponerPunto(p.lat,p.lng,17);$("mapaHint").textContent=`Tu ubicación (±${p.prec} m). Arrastra el punto si hace falta.`}catch(er){$("mapaHint").textContent=er.message}};
+  $("mapaOk").onclick=()=>{if(!mapaPunto)return;guardarUbic(mapaObra,mapaPunto[0],mapaPunto[1],+$("mapaRadio").value);cerrarOv("ovMapa");ctlRender()};
+})();
+function ponerPunto(lat,lng,zoom){
+  mapaPunto=[+lat,+lng];$("mapaOk").disabled=false;
+  if(!mapaObj)return;
+  const r=+$("mapaRadio").value||30;
+  if(!mapaPin){
+    mapaPin=L.marker(mapaPunto,{draggable:true,autoPan:true}).addTo(mapaObj);
+    mapaCirc=L.circle(mapaPunto,{radius:r,color:"#7c3aed",weight:2,fillOpacity:.15}).addTo(mapaObj);
+    mapaPin.on("drag",e=>{const p=e.target.getLatLng();mapaPunto=[p.lat,p.lng];mapaCirc.setLatLng(p)});
+  }else{mapaPin.setLatLng(mapaPunto);mapaCirc.setLatLng(mapaPunto);mapaCirc.setRadius(r)}
+  mapaObj.setView(mapaPunto,zoom||Math.max(mapaObj.getZoom(),17));
+}
+async function abrirMapa(o,lat,lng){
+  mapaObra=o;mapaPunto=null;const u=ubicDe(o);
+  $("mapaTit").textContent="Ubicación de "+o;$("mapaQ").value="";$("mapaRes").hidden=true;$("mapaOk").disabled=true;
+  $("mapaRadio").value=String(u?u.radio:30);
+  $("mapaHint").textContent="Toca el mapa donde está la obra. Puedes arrastrar el punto para afinarlo.";
+  abrirOv("ovMapa");
+  try{await cargarLeaflet()}catch(e){$("mapaMapa").innerHTML=`<p class="hint mapa-sin">${esc(e.message)} Igual puedes pegar el enlace de Google Maps arriba.</p>`;if(lat!=null){mapaPunto=[+lat,+lng];$("mapaOk").disabled=false}return}
+  if(!mapaObj){
+    mapaObj=L.map("mapaMapa",{zoomControl:true,attributionControl:true}).setView([-12.0464,-77.0428],12);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(mapaObj);
+    mapaObj.on("click",e=>{ponerPunto(e.latlng.lat,e.latlng.lng);$("mapaHint").textContent="Punto puesto. Arrástralo si hace falta y toca Guardar."});
+  }
+  setTimeout(()=>{mapaObj.invalidateSize();
+    if(lat!=null)ponerPunto(lat,lng,17);
+    else if(u)ponerPunto(u.lat,u.lng,17);
+    else if(mapaPin){mapaObj.removeLayer(mapaPin);mapaObj.removeLayer(mapaCirc);mapaPin=mapaCirc=null;mapaObj.setView([-12.0464,-77.0428],12)}},80);
+}
+// Lee el enlace aquí; si es corto (maps.app.goo.gl) lo abre el servidor
+async function coordsDeTexto(v){
+  const c=coordsDeEnlace(v);if(c)return c;
+  if(!/^\s*https?:\/\//i.test(v))return null;
+  if(sinNube())throw new Error("En la vista previa no se abren enlaces cortos de Google Maps. En la app sí.");
+  const j=await api("enlaceMapa",{url:String(v).trim()});
+  return [+j.lat,+j.lng];
+}
+async function buscarEnMapa(v){
+  v=String(v||"").trim();if(!v)return;
+  const res=$("mapaRes");res.hidden=true;$("mapaHint").textContent="Buscando…";
+  try{
+    const c=await coordsDeTexto(v);
+    if(c){ponerPunto(c[0],c[1],17);$("mapaHint").textContent="Encontré el lugar del enlace. Revisa el punto y toca Guardar.";return}
+  }catch(e){$("mapaHint").textContent=e.message;return}
+  try{
+    const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=pe&accept-language=es&q="+encodeURIComponent(v));
+    const l=await r.json();
+    if(!l.length){$("mapaHint").textContent="No encontré esa dirección. Prueba con la calle y el distrito, o toca el mapa.";return}
+    res.innerHTML=l.map((x,i)=>`<li><button type="button" class="btnlink" data-mres="${i}">${esc(x.display_name)}</button></li>`).join("");res.hidden=false;
+    res.querySelectorAll("[data-mres]").forEach(b=>b.onclick=()=>{const x=l[+b.dataset.mres];res.hidden=true;ponerPunto(x.lat,x.lon,18);$("mapaHint").textContent="Revisa el punto: arrástralo a la puerta de la obra y toca Guardar."});
+    $("mapaHint").textContent="Elige el resultado correcto.";
+  }catch(e){$("mapaHint").textContent="No se pudo buscar la dirección. Revisa tu internet o toca el mapa."}
+}
 
 /* ===== CBO Obras: se esconde todo lo de finanzas ===== */
 (function(){
