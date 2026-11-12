@@ -1965,6 +1965,8 @@ body.fiesta .usuario i{background:var(--fi-g);background-size:var(--fi-s);color:
     S.call(LS,P+"_ok","1")}
   // Lo pendiente de Finanzas que se copió a Obras se borra: eran pedidos de Finanzas ("Acción desconocida" en el servidor de Obras)
   ["cbo-cola","cbo-firmas-pend","cbo-firmas-borr"].forEach(k=>{try{R.call(LS,P+k)}catch(e){}});
+  // Obras solo trabaja con el servidor de Obras: si quedó guardada la conexión de Finanzas, se borra y pide conectar otra vez
+  try{const c=JSON.parse(G.call(LS,P+"cbo-config")||"null");if(c&&!/AKfycbxzSAHO/.test(String(c.url||"")))R.call(LS,P+"cbo-config")}catch(e){}
   // la lista de usuarios para que la pantalla de entrada salga al toque (se actualiza sola con Google)
   if(G.call(LS,P+"cbo-personas")===null){const v=G.call(LS,"cbo-personas");if(v)S.call(LS,P+"cbo-personas",v)}
   SPr.getItem=function(k){return G.call(this,esLS(this)?P+k:k)};SPr.setItem=function(k,v){return S.call(this,esLS(this)?P+k:k,v)};SPr.removeItem=function(k){return R.call(this,esLS(this)?P+k:k)};
@@ -3764,6 +3766,7 @@ function abrirSetup(msg){$("setup").hidden=false;$("setupMsg").textContent=msg||
 $("setupF").addEventListener("submit",async e=>{
   e.preventDefault();
   const url=$("cfgUrl").value.trim(), clave=$("cfgClave").value.trim();
+  if(url&&!/AKfycbxzSAHO/.test(url)){$("setupMsg").textContent="Ese enlace es de CBO Finanzas. Usa el enlace de CBO Obras (archivo ENLACE-CONECTAR-CBO-OBRAS).";return}
   if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)){$("setupMsg").textContent="Pega el enlace completo que termina en /exec.";return}
   if(!clave){$("setupMsg").textContent="Escribe la clave de acceso.";return}
   $("setupMsg").textContent="Conectando…";
@@ -3788,6 +3791,7 @@ $("copiarCon").onclick=async()=>{
 };
 $("usarCodigo").onclick=async()=>{
   let o;try{o=deCodigo($("cfgCodigo").value)}catch(e){$("setupMsg").textContent="Ese código no es válido. Cópialo completo, empieza con CBO1:";return}
+  if(o&&o.url&&!/AKfycbxzSAHO/.test(String(o.url))){$("setupMsg").textContent="Ese código es de CBO Finanzas. Usa el de CBO Obras.";return}
   $("setupMsg").textContent="Conectando…";
   try{await api("datos",null,o);cfg={url:o.url,clave:o.clave};guardarLS(CFG_K,cfg);$("setup").hidden=true;$("cfgCodigo").value="";cargar()}
   catch(err){$("setupMsg").textContent=err.code==="clave"?"La clave del código no es correcta.":"No se pudo conectar. Revisa tu internet."}
