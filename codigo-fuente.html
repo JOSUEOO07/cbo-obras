@@ -5405,7 +5405,10 @@ async function ctlSync(op,col,rec){
 }
 async function ctlCargar(){
   if(esDemo()||!cfg||!sesion)return;
-  try{const j=await api("ctlDatos");if(j&&j.datos){Object.keys(j.datos).forEach(k=>{ctl[k]=j.datos[k]});ctlGuardarLS();ctlPintar()}}catch(e){}
+  try{const j=await api("ctlDatos");if(j&&j.datos){Object.keys(j.datos).forEach(k=>{const srv=j.datos[k];
+    // lo que todavía se está enviando (marca de asistencia, registro nuevo) no se pierde al recargar
+    const pend=Array.isArray(ctl[k])&&Array.isArray(srv)?ctl[k].filter(x=>x&&x.pend&&!srv.some(y=>y&&y.id===x.id)):[];
+    ctl[k]=Array.isArray(srv)?srv.concat(pend):srv});ctlGuardarLS();ctlPintar()}}catch(e){}
 }
 function celebrarCtl(tit,sub){
   const d=document.createElement("div");d.className="celebra";
