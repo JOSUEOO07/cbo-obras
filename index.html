@@ -3793,8 +3793,9 @@ $("usarCodigo").onclick=async()=>{
   let o;try{o=deCodigo($("cfgCodigo").value)}catch(e){$("setupMsg").textContent="Ese código no es válido. Cópialo completo, empieza con CBO1:";return}
   if(o&&o.url&&!/AKfycbxzSAHO/.test(String(o.url))){$("setupMsg").textContent="Ese código es de CBO Finanzas. Usa el de CBO Obras.";return}
   $("setupMsg").textContent="Conectando…";
-  try{await api("datos",null,o);cfg={url:o.url,clave:o.clave};guardarLS(CFG_K,cfg);$("setup").hidden=true;$("cfgCodigo").value="";cargar()}
-  catch(err){$("setupMsg").textContent=err.code==="clave"?"La clave del código no es correcta.":"No se pudo conectar. Revisa tu internet."}
+  try{await api("datos",null,o)}
+  catch(err){if(err.code!=="sesion"){$("setupMsg").textContent=err.code==="clave"?"La clave del código no es correcta.":"No se pudo conectar. Revisa tu internet.";return}}   // "sesion" = conectado, falta el PIN
+  cfg={url:o.url,clave:o.clave};guardarLS(CFG_K,cfg);$("setup").hidden=true;$("cfgCodigo").value="";cargar()
 };
 document.querySelectorAll(".recargar").forEach(b=>b.onclick=()=>cargar());
 $("desconectar").onclick=()=>abrirSetup("");
