@@ -5915,6 +5915,27 @@ async function buscarEnMapa(v){
   r.addEventListener("click",e=>{e.stopImmediatePropagation();e.preventDefault();document.body.classList.remove("abanico");abrirOv("ovCtlNuevo");try{navigator.vibrate&&navigator.vibrate(10)}catch{}},true);
   document.querySelectorAll("#nav [data-s=tablero],#nav [data-s=control]").forEach(b=>b.onclick=()=>ir(b.dataset.s));
   document.querySelectorAll("#ovMas [data-ir=tablero],#ovMas [data-ir=control]").forEach(b=>b.onclick=()=>{cerrarOv("ovMas");ir(b.dataset.ir)});
+  // Computadora (12/11/2026): la barra izquierda muestra todo a la mano: Registrar y cada parte de Control de obra, sin submenús
+  (function(){
+    const nav=$("nav"),cb=nav&&nav.querySelector("[data-s=control]");if(!cb)return;
+    document.head.insertAdjacentHTML("beforeend",`<style>
+      .nav .nav-reg{background:rgba(255,255,255,.14);opacity:1;margin-bottom:6px;font-weight:700}
+      .nav .nav-sub{padding:8px 12px 8px 26px;font-weight:500;font-size:.93rem}
+      .nav .nav-sub svg{width:18px;height:18px}
+      .nav .nav-sub[hidden]{display:none}
+      @media (max-width:980px){.nav .nav-reg,.nav .nav-sub{display:none}}
+    </style>`);
+    const ic=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${p}</svg>`;
+    nav.insertAdjacentHTML("afterbegin",`<button type="button" class="nav-reg" id="navReg">${ic('<path d="M12 5v14M5 12h14"/>')}Registrar</button>`);
+    cb.insertAdjacentHTML("afterend",CTL_MOD.map(m=>`<button type="button" class="nav-sub" data-navmod="${m[0]}">${ic(m[3])}${esc(m[1])}</button>`).join(""));
+    const marcar=()=>{nav.querySelectorAll("[data-navmod]").forEach(b=>{b.hidden=secOculta(b.dataset.navmod);b.setAttribute("aria-current",seccion==="control"&&ctlVista===b.dataset.navmod?"page":"false")});
+      cb.setAttribute("aria-current",seccion==="control"&&ctlVista==="menu"?"page":"false")};
+    $("navReg").onclick=()=>abrirOv("ovCtlNuevo");
+    nav.querySelectorAll("[data-navmod]").forEach(b=>b.onclick=()=>{ctlVista=b.dataset.navmod;if(seccion==="control")ctlRender();else ir("control");marcar();window.scrollTo(0,0)});
+    cb.onclick=()=>{ctlVista="menu";if(seccion==="control")ctlRender();else ir("control");marcar()};
+    const irB=ir;ir=function(s){const r=irB(s);marcar();return r};
+    const rB=ctlRender;ctlRender=function(){const r=rB.apply(this,arguments);marcar();return r};
+  })();
   ir("tablero");
 })();
 </script>
