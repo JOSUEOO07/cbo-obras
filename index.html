@@ -1004,6 +1004,9 @@ button.ud-card{cursor:pointer;width:100%}
 .inv-cat:active{transform:scale(.985)}
 .inv-cat-gas{background:linear-gradient(155deg,var(--gas-a),var(--gas-b))}
 .inv-cat-ele{background:linear-gradient(155deg,var(--ele-a),var(--ele-b))}
+.inv-cat-herr{background:linear-gradient(155deg,#B4561A,#5A2A0C)}.inv-cat-herr .inv-cat-tx em{color:#FFD08A}.inv-cat-herr .inv-plato{transform:rotate(2deg)}
+.inv-cat-epp{background:linear-gradient(155deg,#C99400,#5C4300)}.inv-cat-epp .inv-cat-tx em{color:#FFF1B0}.inv-cat-epp .inv-plato{transform:rotate(-2deg)}
+.inv-cat-herr .inv-cat-tx b,.inv-cat-epp .inv-cat-tx b{font-size:clamp(1.35rem,5vw,1.8rem)}
 .inv-cat-ele:after{content:"";position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(closest-side,rgba(226,179,60,.35),transparent);pointer-events:none}
 .inv-cat-tx{display:grid;gap:4px;align-self:end;position:relative;z-index:1}
 .inv-cat-tx b{font-family:var(--display);font-stretch:72%;font-weight:800;font-size:clamp(1.7rem,6vw,2.2rem);line-height:.95;letter-spacing:-.01em}
@@ -3496,7 +3499,7 @@ function pintarSesion(){
   if(!sesion){el.innerHTML=`<button class="btn pri" type="button" id="sesEntrar">Entrar con mi PIN</button>`;$("sesEntrar").onclick=pedirUsuario;return}
   const fila=p=>`<li class="usr-li${p.b?" off":""}"><div class="usr-cab"><span><b>${esc(titulo(p.n))}${p.n===quien?" (tú)":""}</b><small>${p.admin?"Administrador":p.b?"Sin acceso":"Usuario"} · PIN <span class="usr-pin" data-pin="${esc(p.p||"")}">••••</span></small></span><button class="btnlink" type="button" data-abrir="${esc(p.n)}">${usrAbierto===p.n?"Cerrar":"Opciones"}</button></div>
     <div class="usr-det"${usrAbierto===p.n?"":" hidden"}><div class="usr-acc">${p.p?`<button class="btnlink" type="button" data-verpin>Ver PIN</button>`:""}${p.n!==quien&&!p.b?`<button class="btnlink" type="button" data-como="${esc(p.n)}">Entrar como</button>`:""}<button class="btnlink" type="button" data-ponpin="${esc(p.n)}">Cambiar PIN</button><button class="btnlink" type="button" data-pinazar="${esc(p.n)}">PIN al azar</button>${!p.admin?`<button class="btnlink" type="button" data-acceso="${esc(p.n)}" data-permitir="${p.b?"1":""}">${p.b?"Dar acceso":"Quitar acceso"}</button>`:""}</div>
-    ${!p.admin&&SECC_PERM.length?`<p class="pal-t">Puede ver y usar</p><div class="usr-perm">${SECC_PERM.map(k=>`<label><input type="checkbox" data-secc="${k}"${(p.oc||[]).includes(k)?"":" checked"}> ${SECC_NOM[k]}</label>`).join("")}<label><input type="checkbox" data-desc${p.d?" checked":""}> Descargar reportes</label></div><div class="line"><button class="btn" type="button" data-guardperm="${esc(p.n)}">Guardar permisos</button></div>`:""}
+    ${!p.admin&&SECC_PERM.length?`<p class="pal-t">Puede ver y usar</p><div class="usr-perm">${SECC_PERM.map(k=>`<label><input type="checkbox" data-secc="${k}"${(p.oc||[]).includes(k)?"":" checked"}> ${SECC_NOM[k]}</label>`).join("")}<label><input type="checkbox" data-desc${p.d?" checked":""}> Descargar reportes</label></div><p class="pal-t">Obras que puede ver</p><div class="usr-perm">${(()=>{try{return invObrasListaTodas()}catch{return []}})().map(o=>{const k=obraKey(o);return `<label><input type="checkbox" data-obrap="${k}"${(p.oc||[]).includes(k)?" checked":""}> ${esc(o)}</label>`}).join("")||'<span class="hint">Aún no hay obras.</span>'}</div><div class="line"><button class="btn" type="button" data-guardperm="${esc(p.n)}">Guardar permisos</button></div>`:""}
     ${filaAcceso(p)}<p class="pal-t">Sus equipos</p>${eqAgrupados(p.eq).length?`<ul class="usr-eq">${eqAgrupados(p.eq).map(g=>`<li><i class="eq-ic" aria-hidden="true">${icoEq(g.e.eq)}</i><span>${esc(nomEq(g.e.eq).replace(/^Administrador · /,""))}<small>Último uso ${fhUsr(g.u)}</small></span><button class="btnlink" type="button" data-cerrarses="${esc(p.n)}" data-sids="${esc(g.ids.join(","))}">Cerrar sesión</button></li>`).join("")}</ul>`:`<p class="hint" style="margin:0">Ninguno</p>`}</div></li>`;
   const adm=sesion.admin?`<p class="pal-t" style="margin:16px 0 6px">Usuarios</p><ul class="usr-lista">${PERSONAS.map(fila).join("")}</ul>
     <p class="pal-t" style="margin:22px 0 8px">Agregar usuario</p><div class="usr-nuevo"><input id="usrNombre" type="text" placeholder="Nombre y apellido" maxlength="40" autocomplete="off" aria-label="Nombre del usuario nuevo"><div class="usr-fila"><label class="usr-azar"><input type="checkbox" id="usrAzar"> PIN al azar</label><button class="btn" type="button" id="usrAgregar">Agregar usuario</button></div></div>
@@ -3517,7 +3520,7 @@ function pintarSesion(){
 }
 async function guardarPermisos(n,li){
   if(sinNube()){toast("En el modo de prueba no se guardan permisos");return}
-  const oc=[...li.querySelectorAll("[data-secc]")].filter(c=>!c.checked).map(c=>c.dataset.secc),d=!!(li.querySelector("[data-desc]")||{}).checked;
+  const oc=[...li.querySelectorAll("[data-secc]")].filter(c=>!c.checked).map(c=>c.dataset.secc).concat([...li.querySelectorAll("[data-obrap]")].filter(c=>c.checked).map(c=>c.dataset.obrap)),d=!!(li.querySelector("[data-desc]")||{}).checked;
   try{usarLista(await api("permisos",{usuario:n,ocultas:oc,descargar:d}));toast(`Permisos de ${nomCorto(n)} guardados. Se aplican cuando abra la app.`)}catch(e){toast(e.message)}
 }
 async function cerrarSesionDe(n,id,ya){
@@ -5334,6 +5337,7 @@ function alAtras(){
 (function(){
   const base=alAtras;let aviso=0;
   alAtras=function(){
+    const cm=document.querySelector(".cam");if(cm){const x=cm.querySelector('[data-cam="listo"]');if(x)x.click();return true}
     // Un solo gesto: se cierra el teclado y también la ventana donde se estaba escribiendo
     const tk=document.querySelector(".tecl.on");if(tk){const a=document.activeElement;if(a&&a.blur)a.blur();document.querySelectorAll(".tecl.on").forEach(x=>x.classList.remove("on"));document.body.classList.remove("tecl-abierto");
       const dl=a&&a.closest&&a.closest(".cbo-dlg");if(dl){const b=dl.querySelector("[data-no]");if(b)b.click();else dl.remove();return true}
@@ -5505,6 +5509,8 @@ const INV_CAT=(()=>{const M=INV_M,u="und";return [
    ["tarugo","Tarugos con tornillo",155,['5 mm','6 mm','8 mm','10 mm','12 mm'],"bolsa"],["guia","Guía pasacables",156,['10 m','15 m','20 m','30 m','50 m'],u]]}
  ]}
 ];})();
+// Inventarios de Herramientas y de Protección personal (EPP): fotos 1000+n vienen de fotos-herr/ (13/11/2026)
+INV_CAT.push({"id": "herr", "n": "Herramientas", "sub": "Equipos y herramientas de la empresa", "fotos": [1001, 1015, 1006, 1044], "grupos": [{"id": "elec", "n": "Eléctricas", "c": "#C2701A", "items": [["h1", "Rotomartillo demoledor", 1001, ["Estándar"], "und"], ["h48", "Rotomartillo", 1048, ["Estándar"], "und"], ["h6", "Taladro atornillador inalámbrico", 1006, ["Estándar"], "und"], ["h72", "Sierra circular 7¼\"", 1072, ["Estándar"], "und"], ["h2", "Amoladora inalámbrica", 1002, ["Estándar"], "und"], ["h31", "Amoladora 4½\"", 1031, ["Estándar"], "und"], ["h32", "Amoladora 7\"", 1032, ["Estándar"], "und"], ["h78", "Pistola de calor", 1078, ["Estándar"], "und"], ["h36", "Termofusora", 1036, ["Estándar"], "und"], ["h51", "Soldadora MIG", 1051, ["Estándar"], "und"], ["h50", "Pistola de fulminante", 1050, ["Estándar"], "und"], ["h7", "Mochila portabaterías", 1007, ["Estándar"], "und"], ["h4", "Batería 12 V", 1004, ["Estándar"], "und"], ["h5", "Batería 20 V 4 Ah", 1005, ["Estándar"], "und"]]}, {"id": "med", "n": "Medición", "c": "#C2701A", "items": [["h3", "Nivel láser", 1003, ["Estándar"], "und"], ["h49", "Medidor láser de distancia", 1049, ["Estándar"], "und"], ["h68", "Nivel de burbuja", 1068, ["40 cm", "60 cm", "80 cm", "100 cm", "120 cm"], "und"], ["h69", "Plomada", 1069, ["200 g", "400 g", "500 g"], "und"], ["h70", "Escuadra", 1070, ["8\"", "12\"", "16\"", "24\""], "und"], ["h8", "Wincha", 1008, ["3 m", "5 m", "8 m", "10 m"], "und"], ["h9", "Wincha Truper cinta negra", 1009, ["5 m", "8 m"], "und"], ["h10", "Wincha Truper Gripper", 1010, ["5 m", "8 m"], "und"], ["h38", "Pinza amperimétrica", 1038, ["Estándar"], "und"], ["h39", "Multímetro", 1039, ["Estándar"], "und"], ["h53", "Tiralíneas con tiza", 1053, ["Estándar"], "und"]]}, {"id": "gasf", "n": "Gasfitería", "c": "#C2701A", "items": [["h15", "Llave Stilson", 1015, ["10\"", "12\"", "14\"", "18\"", "24\"", "36\""], "und"], ["h75", "Tijera corta tubo PVC", 1075, ["Hasta 1\"", "Hasta 1½\"", "Hasta 2½\""], "und"], ["h76", "Tijera corta tubo PVC chica", 1076, ["Hasta 1\"", "Hasta 1¼\""], "und"], ["h77", "Cortatubo", 1077, ["Hasta 1⅛\"", "Hasta 1⅝\"", "Hasta 2\""], "und"], ["h37", "Dados de termofusión", 1037, ["20 mm (½\")", "25 mm (¾\")", "32 mm (1\")", "40 mm", "50 mm", "63 mm"], "und"], ["h79", "Sonda desatoradora", 1079, ["1.5 m", "3 m", "5 m", "10 m"], "und"], ["h33", "Pistola de silicona", 1033, ["Estándar"], "und"]]}, {"id": "elect", "n": "Electricidad", "c": "#C2701A", "items": [["h13", "Pelacables", 1013, ["Estándar"], "und"], ["h73", "Crimpeadora de terminales", 1073, ["0.25–6 mm²", "0.25–10 mm²"], "und"], ["h74", "Crimpeadora hidráulica", 1074, ["4–70 mm²", "10–120 mm²", "16–240 mm²"], "und"], ["h54", "Guía pasacable", 1054, ["10 m", "15 m", "20 m", "30 m"], "und"], ["h16", "Destornillador estrella aislado", 1016, ["PH0", "PH1", "PH2", "PH3"], "und"], ["h17", "Destornillador plano aislado", 1017, ["1/8\"", "3/16\"", "1/4\"", "5/16\""], "und"]]}, {"id": "mano", "n": "De mano", "c": "#C2701A", "items": [["h11", "Alicate de punta", 1011, ["6\"", "7\"", "8\""], "und"], ["h12", "Alicate universal", 1012, ["6\"", "7\"", "8\""], "und"], ["h34", "Alicate pico de loro", 1034, ["8\"", "10\"", "12\""], "und"], ["h14", "Llave francesa", 1014, ["6\"", "8\"", "10\"", "12\"", "15\""], "und"], ["h71", "Juego de llaves Allen", 1071, ["Milímetros", "Pulgadas"], "und"], ["h18", "Destornillador plano", 1018, ["1/8\"", "3/16\"", "1/4\"", "5/16\""], "und"], ["h19", "Cuchilla", 1019, ["9 mm", "18 mm", "25 mm"], "und"], ["h40", "Martillo", 1040, ["16 oz", "20 oz"], "und"], ["h41", "Comba", 1041, ["2 lb", "4 lb", "6 lb", "8 lb"], "und"], ["h57", "Tijera de hojalatero", 1057, ["Recta", "Izquierda", "Derecha"], "und"]]}, {"id": "corte", "n": "Corte", "c": "#C2701A", "items": [["h35", "Cortadora de cerámica", 1035, ["60 cm", "80 cm", "100 cm"], "und"], ["h80", "Arco de sierra", 1080, ["12\""], "und"], ["h52", "Hoja de sierra", 1052, ["18 dientes", "24 dientes", "32 dientes"], "und"], ["h60", "Serrucho", 1060, ["18\"", "20\"", "22\""], "und"], ["h59", "Serrucho de punta", 1059, ["6\"", "8\""], "und"], ["h58", "Cepillo de mano", 1058, ["Estándar"], "und"]]}, {"id": "alba", "n": "Albañilería", "c": "#C2701A", "items": [["h26", "Badilejo", 1026, ["8\"", "10\""], "und"], ["h62", "Badilejo de punta cuadrada", 1062, ["8\"", "10\""], "und"], ["h25", "Espátula", 1025, ["2\"", "3\"", "4\"", "5\""], "und"], ["h61", "Llana lisa", 1061, ["28 cm", "30 cm"], "und"], ["h63", "Llana dentada", 1063, ["6 mm", "8 mm", "10 mm", "12 mm"], "und"], ["h42", "Cincel", 1042, ["3/4\"", "1\""], "und"], ["h43", "Puntero", 1043, ["12\"", "16\""], "und"], ["h29", "Barreta", 1029, ["1.5 m", "1.8 m"], "und"], ["h30", "Pata de cabra", 1030, ["18\"", "24\"", "36\""], "und"], ["h20", "Pico", 1020, ["Estándar"], "und"], ["h21", "Lampa", 1021, ["Estándar"], "und"], ["h27", "Balde", 1027, ["12 L", "18 L", "20 L"], "und"], ["h55", "Pabilo", 1055, ["Estándar"], "und"], ["h56", "Plástico azul", 1056, ["Estándar"], "und"]]}, {"id": "brocas", "n": "Brocas", "c": "#C2701A", "items": [["h44", "Broca para concreto", 1044, ["1/4\"", "5/16\"", "3/8\"", "1/2\"", "5/8\""], "und"], ["h45", "Broca SDS-plus", 1045, ["6 mm", "8 mm", "10 mm", "12 mm", "14 mm", "16 mm"], "und"], ["h46", "Broca para metal", 1046, ["1/8\"", "3/16\"", "1/4\"", "5/16\"", "3/8\"", "1/2\""], "und"], ["h47", "Broca para madera", 1047, ["6 mm", "8 mm", "10 mm", "12 mm", "16 mm"], "und"]]}, {"id": "carga", "n": "Carga y altura", "c": "#C2701A", "items": [["h28", "Escalera tijera", 1028, ["3 pasos", "4 pasos", "5 pasos", "6 pasos", "8 pasos"], "und"], ["h22", "Carretilla", 1022, ["Estándar"], "und"], ["h24", "Carretilla plegable", 1024, ["Estándar"], "und"], ["h23", "Caja de herramientas", 1023, ["Estándar"], "und"]]}, {"id": "limp", "n": "Limpieza", "c": "#C2701A", "items": [["h64", "Escoba", 1064, ["Estándar"], "und"], ["h65", "Recogedor", 1065, ["Estándar"], "und"], ["h66", "Franelas", 1066, ["Estándar"], "und"], ["h67", "Jalador", 1067, ["Estándar"], "und"]]}]},{"id": "epp", "n": "Protección personal (EPP)", "sub": "Cascos, guantes, botines, arneses y más", "fotos": [1081, 1095, 1096, 1097], "grupos": [{"id": "cabeza", "n": "Cabeza", "c": "#D9A300", "items": [["h81", "Casco", 1081, ["Blanco", "Verde", "Rojo", "Azul", "Gris"], "und"], ["h83", "Suspensión de casco", 1083, ["Estándar"], "und"], ["h87", "Barbiquejo", 1087, ["Estándar"], "und"]]}, {"id": "ojos", "n": "Ojos y cara", "c": "#D9A300", "items": [["h88", "Lentes de seguridad", 1088, ["Claros", "Oscuros"], "und"], ["h89", "Careta facial", 1089, ["Estándar"], "und"], ["h90", "Careta de soldar", 1090, ["Estándar"], "und"]]}, {"id": "oidos", "n": "Oídos", "c": "#D9A300", "items": [["h91", "Tapones auditivos", 1091, ["Estándar"], "und"], ["h92", "Orejeras para casco", 1092, ["Estándar"], "und"]]}, {"id": "resp", "n": "Respiración", "c": "#D9A300", "items": [["h93", "Mascarilla KN95", 1093, ["Estándar"], "und"], ["h94", "Respirador media cara", 1094, ["S", "M", "L"], "und"]]}, {"id": "manos", "n": "Manos y pies", "c": "#D9A300", "items": [["h95", "Guantes de seguridad", 1095, ["S", "M", "L", "XL"], "par"], ["h96", "Botines de seguridad", 1096, ["37", "38", "39", "40", "41", "42", "43", "44", "45"], "par"]]}, {"id": "altura", "n": "Trabajo en altura", "c": "#D9A300", "items": [["h97", "Arnés de cuerpo entero", 1097, ["M", "L", "XL"], "und"], ["h98", "Línea de vida doble", 1098, ["1.2 m", "1.8 m"], "und"]]}, {"id": "ropa", "n": "Ropa de trabajo", "c": "#D9A300", "items": [["h99", "Pantalón con cinta reflectiva", 1099, ["28", "30", "32", "34", "36", "38", "40"], "und"], ["h100", "Polo manga larga", 1100, ["S", "M", "L", "XL", "XXL"], "und"], ["h101", "Chaleco", 1101, ["S", "M", "L", "XL", "XXL"], "und"]]}]});
 // Índice rápido: "gas.ppr.codo90" → {cat, grupo, id, n, f, m, u}
 const INV_IDX={};
 INV_CAT.forEach(c=>c.grupos.forEach(g=>g.items.forEach(([id,n,f,m,u])=>{const k=c.id+"."+g.id+"."+id;INV_IDX[k]={k,cat:c,g,id,n,f,m,u}})));
@@ -5527,7 +5533,8 @@ const invCfg=o=>invData.obras.find(x=>x.obra.toUpperCase()===String(o||"").toUpp
 const invTodoCosto=()=>((invCfg(invObra)||{}).modalidad||"todo")==="todo";
 function invPisos(o){const c=invCfg(o);const p=(c&&c.pisos)?c.pisos.split(",").map(s=>s.trim()).filter(Boolean):["1","2","3"];return p}
 function pisoLbl(p){if(/^\d+$/.test(p)){const n=+p;return n+(n===1||n===3?".er":".º")+" piso"}return p}
-function invFoto(it){return invFotos[it.k]||(it.f?invFotos["f"+it.f]:"")||(it.f>=201?`fotos-inv/f${it.f}.jpg`:"")||""}
+const invFotoN=f=>f>=1000?((window.__FH&&window.__FH[f-1000])||`fotos-herr/h${f-1000}.jpg`):(invFotos["f"+f]||"");
+function invFoto(it){return invFotos[it.k]||(it.f>=1000?invFotoN(it.f):"")||(it.f?invFotos["f"+it.f]:"")||(it.f>=201?`fotos-inv/f${it.f}.jpg`:"")||""}
 function invMovsObra(){const O=String(invObra||"").toUpperCase();return invData.movs.concat(invCola.filter(c=>c.accion==="invMov").map(c=>Object.assign({pend:1},c.mov))).filter(m=>String(m.obra).toUpperCase()===O&&!invCola.some(c=>c.accion==="invBorrar"&&c.id===m.id))}
 function invSaldo(movs,k,med){let s=0;movs.forEach(m=>{if(m.item!==k||(med!=null&&m.medida!==med))return;s+=m.tipo==="entra"?m.cant:-m.cant});return s}
 function invPrecio(movs,k,med){const L=movs.filter(m=>m.item===k&&m.medida===med&&m.precio>0).sort((a,b)=>b.ts-a.ts);return L.length?L[0].precio:0}
@@ -5604,7 +5611,15 @@ async function invUsarObra(nombre,luego){
     await invGuardar("invObra",{obra:{obra:n,modalidad:"todo",pisos:"1,2,3"}});invObra=n;toast(`Obra nueva guardada: ${n}. Ajusta sus pisos y quién pone el material en "Editar obra".`)}
   guardarLS(INV_OBRA,invObra);luego&&luego();
 }
+// Cada usuario ve solo las obras que el administrador le marca (permiso "ob-…"); el administrador ve todas
+function obraKey(o){return "ob-"+sinTildes(o).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)}
 function invObrasLista(){
+  const L=invObrasListaTodas();if(!sesion||sesion.admin)return L;
+  const ok=new Set((sesion.ocultas||[]).filter(k=>k.startsWith("ob-")));const V=L.filter(o=>ok.has(obraKey(o)));
+  if(invObra&&!V.some(o=>o.toUpperCase()===String(invObra).toUpperCase())){invObra=V[0]||"";guardarLS(INV_OBRA,invObra)}
+  return V;
+}
+function invObrasListaTodas(){
   const s=new Map(); invData.obras.forEach(o=>s.set(o.obra.toUpperCase(),o.obra));
   try{obrasConocidas().forEach(o=>{if(!s.has(o.n.toUpperCase()))s.set(o.n.toUpperCase(),o.n)})}catch{}
   return [...s.values()];
@@ -5619,7 +5634,7 @@ function invRenderHome(el){
   const enObra=new Set(); movs.forEach(m=>enObra.add(m.item));
   const conSaldo=[...enObra].filter(k=>invSaldo(movs,k)>0.0001);
   const tarjeta=cat=>{const n=cat.grupos.reduce((s,g)=>s+g.items.length,0), sal=conSaldo.filter(k=>k.startsWith(cat.id+".")).length;
-    return `<button type="button" class="inv-cat inv-cat-${cat.id}" data-invcat="${cat.id}"><span class="inv-plato"${cat.fotos.some(f=>invFotos["f"+f])?"":" hidden"}>${cat.fotos.map(f=>`<img alt="" src="${invFotos["f"+f]||""}" ${invFotos["f"+f]?"":"hidden"}>`).join("")}</span>
+    return `<button type="button" class="inv-cat inv-cat-${cat.id}" data-invcat="${cat.id}"><span class="inv-plato"${cat.fotos.some(f=>invFotoN(f))?"":" hidden"}>${cat.fotos.map(f=>`<img alt="" src="${invFotoN(f)}" ${invFotoN(f)?"":"hidden"}>`).join("")}</span>
       <span class="inv-cat-tx"><b>${cat.n}</b><small>${cat.sub}</small><em>${n} piezas${sal?` · ${sal} con saldo en obra`:""}</em></span></button>`};
   el.innerHTML=`
   <div class="inv-obra">
@@ -5715,7 +5730,7 @@ function invPintarItem(){
   <div class="inv-obra-pieza"><div class="ac-wrap"><label class="inv-f"><span class="inv-lbl">Obra · elige o escribe una nueva</span><input id="invObraItem" maxlength="60" autocomplete="off" value="${escA(invObra||"")}" placeholder="Elige la obra o escribe una nueva"></label><div class="sug" id="invObraItemSug" role="listbox" hidden></div></div>
     <small class="hint">Todo lo que registres aquí queda en esta obra.</small></div>
   <div class="seg inv-seg" role="group" aria-label="Qué pasó con el material">${Object.entries(INV_TIPOS).map(([t,n])=>`<button type="button" data-invtipo="${t}" aria-pressed="${F.tipo===t}">${n}</button>`).join("")}</div>
-  <div class="inv-f"><span class="inv-lbl">Medida${I.m.length>12?` · ${I.m.length} opciones`:""}</span>${I.m.length>12?'<input id="invMedQ" type="search" placeholder="Filtrar, ej. 1/2, 40 cm, 2P" autocomplete="off">':""}<div class="inv-meds" id="invMeds">${I.m.map(m=>{const s=invSaldo(movs,k,m);return `<button type="button" class="inv-med" data-invmed="${escA(m)}" aria-pressed="${F.medida===m}">${esc(m)}${s>0.0001?`<em>${invNum(s)}</em>`:""}</button>`}).join("")}</div></div>
+  <div class="inv-f"><span class="inv-lbl">${I.cat&&I.cat.id==="epp"?(I.id==="h81"?"Color":"Talla o tipo"):"Medida"}${I.m.length>12?` · ${I.m.length} opciones`:""}</span>${I.m.length>12?'<input id="invMedQ" type="search" placeholder="Filtrar, ej. 1/2, 40 cm, 2P" autocomplete="off">':""}<div class="inv-meds" id="invMeds">${I.m.map(m=>{const s=invSaldo(movs,k,m);return `<button type="button" class="inv-med" data-invmed="${escA(m)}" aria-pressed="${F.medida===m}">${esc(m)}${s>0.0001?`<em>${invNum(s)}</em>`:""}</button>`}).join("")}</div></div>
   ${F.tipo==="usa"?`<div class="inv-row">
     <label class="inv-f"><span class="inv-lbl">La obra tiene hasta el piso</span><input id="invHasta" type="number" inputmode="numeric" min="1" max="99" value="${pisos.filter(p=>/^\d+$/.test(p)).length||1}"></label>
     <label class="inv-f"><span class="inv-lbl">Piso donde se usó</span><select id="invPisoSel"><option value="">Elige el piso</option>${pisos.map(p=>`<option value="${escA(p)}" ${F.piso===p?"selected":""}>${esc(pisoLbl(p))}</option>`).join("")}</select></label>
@@ -5860,6 +5875,65 @@ function ctlGuardarRec(col,rec,celebra){
 }
 function ctlBorrarRec(col,id){ctl[col]=(ctl[col]||[]).filter(x=>x.id!==id);ctlGuardarLS();ctlSync("borrar",col,{id});ctlPintar()}
 // Foto liviana para guardar y subir (lado mayor 900 px)
+/* ===== Fotos antes y después: cámara dentro de la app y varias fotos a la vez (13/11/2026) ===== */
+let fotosSel=[];
+const IC_CAM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+const IC_GAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>';
+function fotosCampo(r){fotosSel=r&&r.foto?[r.foto]:[];setTimeout(fotosTira,0);
+  return `<div class="campo fs"><span class="lbl">Fotos</span><div class="fs-bts"><button type="button" class="btn" id="fsCam">${IC_CAM}<span>Tomar fotos</span></button><button type="button" class="btn2" id="fsGal">${IC_GAL}<span>Galería</span></button><input type="file" accept="image/*" multiple id="fsIn" hidden></div><div class="fs-tira" id="fsTira"></div></div>`}
+function fotosTira(){const t=$("fsTira");if(!t)return;t.innerHTML=fotosSel.length?fotosSel.map((u,i)=>`<figure><img alt="" src="${u}"><button type="button" class="fs-x" data-fsx="${i}" aria-label="Quitar foto">✕</button></figure>`).join("")+`<p class="hint fs-n">${fotosSel.length} ${fotosSel.length===1?"foto":"fotos"}</p>`:'<p class="hint" style="margin:0">Toma las fotos con la cámara o elígelas de la galería. Puedes poner varias.</p>'}
+const fotoDeCanvas=c=>{let u=c.toDataURL("image/jpeg",.72);if(u.length>180000)u=c.toDataURL("image/jpeg",.5);return u};
+async function camaraApp(){
+  let st=null,fac="environment";const tomadas=[];
+  const d=document.createElement("div");d.className="cam";
+  d.innerHTML=`<video playsinline muted autoplay></video><div class="cam-flash"></div>
+    <div class="cam-top"><button type="button" class="cam-b" data-cam="cerrar" aria-label="Cerrar">✕</button><span class="cam-n"></span><button type="button" class="cam-b" data-cam="girar" aria-label="Cambiar cámara"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M20 4v4h-4M4 20v-4h4"/></svg></button></div>
+    <div class="cam-tira"></div>
+    <div class="cam-bot"><button type="button" class="cam-b" data-cam="gal" aria-label="Galería">${IC_GAL}</button><button type="button" class="cam-disp" data-cam="foto" aria-label="Tomar foto"><i></i></button><button type="button" class="cam-ok" data-cam="listo">Listo</button></div>`;
+  document.body.append(d);const v=d.querySelector("video");
+  const pintar=()=>{d.querySelector(".cam-tira").innerHTML=tomadas.map((u,i)=>`<figure><img alt="" src="${u}"><button type="button" class="fs-x" data-camx="${i}" aria-label="Quitar">✕</button></figure>`).join("");d.querySelector(".cam-n").textContent=tomadas.length?`${tomadas.length} ${tomadas.length===1?"foto":"fotos"}`:"";d.querySelector(".cam-ok").textContent=tomadas.length?`Listo (${tomadas.length})`:"Listo"};
+  const parar=()=>{if(st)st.getTracks().forEach(t=>t.stop());st=null};
+  const abrir=async()=>{parar();try{st=await navigator.mediaDevices.getUserMedia({video:{facingMode:fac,width:{ideal:1920},height:{ideal:1080}},audio:false});v.srcObject=st;await v.play().catch(()=>{});return true}catch(e){return false}};
+  const fin=()=>{parar();d.remove();fotosSel.push(...tomadas);fotosTira()};
+  if(!navigator.mediaDevices||!await abrir()){d.remove();toast("No se pudo abrir la cámara aquí: elige de la galería o toma con la cámara del celular.");const i=$("fsIn");if(i){i.setAttribute("capture","environment");i.click();setTimeout(()=>i.removeAttribute("capture"),1000)}return}
+  pintar();
+  d.addEventListener("click",async e=>{const b=e.target.closest("[data-cam],[data-camx]");if(!b)return;
+    if(b.dataset.camx!=null){tomadas.splice(+b.dataset.camx,1);pintar();return}
+    const a=b.dataset.cam;
+    if(a==="foto"){if(!v.videoWidth)return;const k=Math.min(1,900/Math.max(v.videoWidth,v.videoHeight)),c=document.createElement("canvas");c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+      tomadas.push(fotoDeCanvas(c));const fl=d.querySelector(".cam-flash");fl.classList.remove("on");void fl.offsetWidth;fl.classList.add("on");try{navigator.vibrate&&navigator.vibrate(15)}catch{}pintar();return}
+    if(a==="girar"){fac=fac==="environment"?"user":"environment";await abrir();return}
+    if(a==="gal"){fin();const i=$("fsIn");if(i)i.click();return}
+    if(a==="cerrar"&&tomadas.length&&!await cboConfirmar(`¿Salir sin guardar ${tomadas.length===1?"la foto":"las "+tomadas.length+" fotos"}?`,{titulo:"Fotos tomadas",si:"Salir",no:"Seguir"}))return;
+    if(a==="cerrar"){tomadas.length=0;fin();return}
+    if(a==="listo")fin()});
+}
+document.addEventListener("click",e=>{
+  if(e.target.closest("#fsCam")){camaraApp();return}
+  if(e.target.closest("#fsGal")){const i=$("fsIn");if(i)i.click();return}
+  const x=e.target.closest("[data-fsx]");if(x){fotosSel.splice(+x.dataset.fsx,1);fotosTira()}
+});
+document.addEventListener("change",async e=>{if(e.target.id!=="fsIn")return;const fs=[...e.target.files];e.target.value="";for(const f of fs){try{fotosSel.push(await fotoLiviana(f));fotosTira()}catch{}}});
+document.head.insertAdjacentHTML("beforeend",`<style id="fsCss">
+.fs-bts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fs-bts .btn,.fs-bts .btn2{display:flex;align-items:center;justify-content:center;gap:8px}.fs-bts svg{width:20px;height:20px}
+.fs-tira{display:flex;gap:8px;overflow-x:auto;padding:8px 2px 2px;align-items:center}
+.fs-tira figure,.cam-tira figure{position:relative;margin:0;flex:none}
+.fs-tira img{width:84px;height:84px;object-fit:cover;border-radius:12px;display:block}
+.fs-x{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:0;background:#C0392B;color:#fff;font-size:.75rem;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.fs-n{margin:0 0 0 4px;white-space:nowrap}
+.cam{position:fixed;inset:0;z-index:99960;background:#000;color:#fff;display:grid;grid-template-rows:auto 1fr auto auto}
+.cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}.cam-flash.on{animation:camFl .35s ease-out}
+@keyframes camFl{0%{opacity:.85}100%{opacity:0}}
+.cam-top,.cam-bot,.cam-tira{position:relative;z-index:1}
+.cam-top{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 0}
+.cam-n{font:700 .95rem var(--display);background:rgba(0,0,0,.45);padding:6px 12px;border-radius:999px}.cam-n:empty{visibility:hidden}
+.cam-b{width:46px;height:46px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;font-size:1.1rem}.cam-b svg{width:24px;height:24px}
+.cam-tira{grid-row:3;display:flex;gap:8px;overflow-x:auto;padding:8px 14px}.cam-tira img{width:58px;height:58px;object-fit:cover;border-radius:10px;border:2px solid #fff;display:block}
+.cam-bot{grid-row:4;display:flex;justify-content:space-between;align-items:center;padding:12px 22px calc(18px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.55))}
+.cam-disp{width:76px;height:76px;border-radius:50%;border:4px solid #fff;background:transparent;padding:5px}.cam-disp i{display:block;width:100%;height:100%;border-radius:50%;background:#fff;transition:transform .1s}.cam-disp:active i{transform:scale(.88)}
+.cam-ok{border:0;border-radius:999px;padding:12px 18px;font:700 1rem var(--display);background:var(--brand-2);color:var(--brand-deep,#111);min-width:84px}
+</style>`);
 async function fotoLiviana(file){
   const url=URL.createObjectURL(file);
   try{const im=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=url});
@@ -5934,11 +6008,62 @@ function vPedidos(){
     const b=(r.estado==="pedido"&&adm?`<button type="button" class="btn" data-pedido="aprobado" data-id="${r.id}">Aprobar</button><button type="button" class="btn2" data-pedido="rechazado" data-id="${r.id}">Rechazar</button>`:"")+(r.estado==="aprobado"?`<button type="button" class="btn" data-pedido="llego" data-id="${r.id}">Llegó</button>`:"");
     return `<div class="panel ctl-it"><div class="ctl-it-t"><b>${esc(r.material)}</b><small>${invNum(r.cant)} ${esc(r.unidad||"")} · pidió ${esc(titulo(r.por||""))} el ${fCorta(r.fecha)}${r.para?" · para el "+fCorta(r.para):""}</small></div><span class="ctl-ch ${r.estado==="pedido"?"al":r.estado==="rechazado"?"mal":"ok"}">${EST_PED[r.estado]||r.estado}</span>${r.nota?`<p class="ctl-txt">${esc(r.nota)}</p>`:""}${b?`<div class="ctl-bts">${b}</div>`:""}${acc("pedidos",r)}</div>`}).join("")}</div>`;
 }
+/* ===== Catálogo de herramientas con foto y medida (13/11/2026): se toca la herramienta y, si lleva medida, se elige ===== */
+const HERR_CAT=[
+ {g:"Eléctricas",it:[[1,"Rotomartillo demoledor"],[48,"Rotomartillo"],[6,"Taladro atornillador inalámbrico"],[72,"Sierra circular 7¼\""],[2,"Amoladora inalámbrica"],[31,"Amoladora 4½\""],[32,"Amoladora 7\""],[78,"Pistola de calor"],[36,"Termofusora"],[51,"Soldadora MIG"],[50,"Pistola de fulminante"],[7,"Mochila portabaterías"],[4,"Batería 12 V"],[5,"Batería 20 V 4 Ah"]]},
+ {g:"Medición",it:[[3,"Nivel láser"],[49,"Medidor láser de distancia"],[68,"Nivel de burbuja","40 cm|60 cm|80 cm|100 cm|120 cm"],[69,"Plomada","200 g|400 g|500 g"],[70,"Escuadra",'8"|12"|16"|24"'],[8,"Wincha","3 m|5 m|8 m|10 m"],[9,"Wincha Truper cinta negra","5 m|8 m"],[10,"Wincha Truper Gripper","5 m|8 m"],[38,"Pinza amperimétrica"],[39,"Multímetro"],[53,"Tiralíneas con tiza"]]},
+ {g:"Gasfitería",it:[[15,"Llave Stilson",'10"|12"|14"|18"|24"|36"'],[75,"Tijera corta tubo PVC",'Hasta 1"|Hasta 1½"|Hasta 2½"'],[76,"Tijera corta tubo PVC chica",'Hasta 1"|Hasta 1¼"'],[77,"Cortatubo",'Hasta 1⅛"|Hasta 1⅝"|Hasta 2"'],[37,"Dados de termofusión",'20 mm (½")|25 mm (¾")|32 mm (1")|40 mm|50 mm|63 mm'],[79,"Sonda desatoradora","1.5 m|3 m|5 m|10 m"],[33,"Pistola de silicona"]]},
+ {g:"Electricidad",it:[[13,"Pelacables"],[73,"Crimpeadora de terminales","0.25–6 mm²|0.25–10 mm²"],[74,"Crimpeadora hidráulica","4–70 mm²|10–120 mm²|16–240 mm²"],[54,"Guía pasacable","10 m|15 m|20 m|30 m"],[16,"Destornillador estrella aislado","PH0|PH1|PH2|PH3"],[17,"Destornillador plano aislado",'1/8"|3/16"|1/4"|5/16"']]},
+ {g:"De mano",it:[[11,"Alicate de punta",'6"|7"|8"'],[12,"Alicate universal",'6"|7"|8"'],[34,"Alicate pico de loro",'8"|10"|12"'],[14,"Llave francesa",'6"|8"|10"|12"|15"'],[71,"Juego de llaves Allen","Milímetros|Pulgadas"],[18,"Destornillador plano",'1/8"|3/16"|1/4"|5/16"'],[19,"Cuchilla","9 mm|18 mm|25 mm"],[40,"Martillo","16 oz|20 oz"],[41,"Comba","2 lb|4 lb|6 lb|8 lb"],[57,"Tijera de hojalatero","Recta|Izquierda|Derecha"]]},
+ {g:"Corte",it:[[35,"Cortadora de cerámica","60 cm|80 cm|100 cm"],[80,"Arco de sierra",'12"'],[52,"Hoja de sierra","18 dientes|24 dientes|32 dientes"],[60,"Serrucho",'18"|20"|22"'],[59,"Serrucho de punta",'6"|8"'],[58,"Cepillo de mano"]]},
+ {g:"Albañilería",it:[[26,"Badilejo",'8"|10"'],[62,"Badilejo de punta cuadrada",'8"|10"'],[25,"Espátula",'2"|3"|4"|5"'],[61,"Llana lisa","28 cm|30 cm"],[63,"Llana dentada","6 mm|8 mm|10 mm|12 mm"],[42,"Cincel",'3/4"|1"'],[43,"Puntero",'12"|16"'],[29,"Barreta","1.5 m|1.8 m"],[30,"Pata de cabra",'18"|24"|36"'],[20,"Pico"],[21,"Lampa"],[27,"Balde","12 L|18 L|20 L"],[55,"Pabilo"],[56,"Plástico azul"]]},
+ {g:"Brocas",it:[[44,"Broca para concreto",'1/4"|5/16"|3/8"|1/2"|5/8"'],[45,"Broca SDS-plus","6 mm|8 mm|10 mm|12 mm|14 mm|16 mm"],[46,"Broca para metal",'1/8"|3/16"|1/4"|5/16"|3/8"|1/2"'],[47,"Broca para madera","6 mm|8 mm|10 mm|12 mm|16 mm"]]},
+ {g:"Carga y altura",it:[[28,"Escalera tijera","3 pasos|4 pasos|5 pasos|6 pasos|8 pasos"],[22,"Carretilla"],[24,"Carretilla plegable"],[23,"Caja de herramientas"]]},
+ {g:"Limpieza",it:[[64,"Escoba"],[65,"Recogedor"],[66,"Franelas"],[67,"Jalador"]]},
+ {g:"Protección personal (EPP)",it:[[81,"Casco","Blanco|Verde|Rojo|Azul|Gris"],[83,"Suspensión de casco"],[87,"Barbiquejo"],[88,"Lentes de seguridad","Claros|Oscuros"],[89,"Careta facial"],[90,"Careta de soldar"],[91,"Tapones auditivos"],[92,"Orejeras para casco"],[93,"Mascarilla KN95"],[94,"Respirador media cara","S|M|L"],[95,"Guantes de seguridad","S|M|L|XL"],[96,"Botines de seguridad","37|38|39|40|41|42|43|44|45"],[97,"Arnés de cuerpo entero","M|L|XL"],[98,"Línea de vida doble","1.2 m|1.8 m"],[99,"Pantalón con cinta reflectiva","28|30|32|34|36|38|40"],[100,"Polo manga larga","S|M|L|XL|XXL"],[101,"Chaleco","S|M|L|XL|XXL"]]}];
+// Opciones que traen su propia foto (el casco cambia de color)
+const HERR_FOTO_OP={"81|Blanco":81,"81|Verde":82,"81|Rojo":84,"81|Azul":85,"81|Gris":86};
+const herrFoto=n=>n?((window.__FH&&window.__FH[n])||`fotos-herr/h${n}.jpg`):"";
+const HERR_IDX=[];HERR_CAT.forEach(g=>g.it.forEach(x=>HERR_IDX.push({f:x[0],n:x[1],m:x[2]?x[2].split("|"):[],g:g.g})));
+const herrDe=r=>(r&&r.hfoto&&HERR_IDX.find(x=>x.f===r.hfoto))||HERR_IDX.slice().sort((a,b)=>b.n.length-a.n.length).find(x=>String(r&&r.herr||"").toLowerCase().startsWith(x.n.toLowerCase()));
+function herrPicker(r){const s=r&&r.herr?herrDe(r):null;
+  return `<div class="hc"><input id="hcBus" maxlength="40" placeholder="Buscar herramienta…" autocomplete="off"><div class="hc-gr" id="hcGr">${HERR_CAT.map(g=>`<div class="hc-bl"><p class="hc-g">${esc(g.g)}</p><div class="hc-l">${g.it.map(x=>`<button type="button" class="hc-it${s&&s.f===x[0]?" on":""}" data-hf="${x[0]}" data-hn="${escA(x[1])}"><img alt="" loading="lazy" src="${herrFoto(x[0])}"><span>${esc(x[1])}</span></button>`).join("")}</div></div>`).join("")}</div><div class="hc-med" id="hcMed" hidden></div></div>`}
+document.head.insertAdjacentHTML("beforeend",`<style id="hcCss">
+.hc{display:grid;gap:8px;margin-bottom:4px}
+.hc-gr{max-height:44vh;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px 8px 8px;background:var(--soft);overscroll-behavior:contain}
+.hc-g{margin:10px 2px 6px;font:700 .72rem var(--display);text-transform:uppercase;letter-spacing:.07em;opacity:.7}
+.hc-l{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.hc-it{display:grid;justify-items:center;align-content:start;gap:4px;padding:6px 4px 8px;border-radius:12px;border:1.5px solid transparent;background:var(--surface);color:inherit;font:600 .72rem/1.15 var(--display);text-align:center;transition:transform .12s cubic-bezier(.23,1,.32,1),border-color .15s}
+.hc-it[hidden],.hc-bl[hidden]{display:none}
+.hc-it:active{transform:scale(.95)}
+.hc-it img{width:64px;height:64px;object-fit:contain;background:#fff;border-radius:10px}
+.hc-it.on{border-color:var(--brand-2);background:color-mix(in srgb,var(--brand-2) 16%,var(--surface))}
+.hc-med{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.hc-med[hidden]{display:none}
+.hc-med b{width:100%;font-size:.8rem;opacity:.85}
+.hc-med button{border:1.5px solid var(--line);background:var(--surface);color:inherit;border-radius:999px;padding:8px 13px;font-weight:700}
+.hc-med button.on{background:var(--brand-2);color:var(--brand-deep,#111);border-color:transparent}
+.hc-mini{width:48px;height:48px;object-fit:contain;background:#fff;border-radius:10px;flex:none}
+.ctl-it-t.hc-con{display:flex;gap:10px;align-items:center}.ctl-it-t.hc-con>div{display:grid;min-width:0}
+</style>`);
+document.addEventListener("click",e=>{
+  const it=e.target.closest(".hc-it");
+  if(it){const x=HERR_IDX.find(h=>h.f===+it.dataset.hf),inp=$("cHerr"),med=$("hcMed");if(!x||!inp)return;
+    document.querySelectorAll(".hc-it.on").forEach(b=>b.classList.remove("on"));it.classList.add("on");
+    inp.value=x.n;inp.dataset.f=x.f;inp.dataset.fo="";
+    if(x.m.length){const lb={81:"Color",88:"Tipo",98:"Largo",57:"Tipo",71:"Tipo"}[x.f]||(/EPP/.test(x.g)?"Talla":"Medida");med.innerHTML=`<b>${lb} de ${esc(x.n.toLowerCase())}</b>${x.m.map(m=>`<button type="button" data-hm="${escA(m)}">${esc(m)}</button>`).join("")}`;med.hidden=false}else{med.innerHTML="";med.hidden=true}
+    return}
+  const m=e.target.closest("#hcMed [data-hm]");
+  if(m){const inp=$("cHerr"),x=HERR_IDX.find(h=>h.f===+inp.dataset.f);if(!x)return;$("hcMed").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b===m));inp.value=x.n+" "+m.dataset.hm;const fo=HERR_FOTO_OP[x.f+"|"+m.dataset.hm];inp.dataset.fo=fo||"";const t=document.querySelector(`.hc-it[data-hf="${x.f}"] img`);if(t)t.src=herrFoto(fo||x.f)}
+});
+document.addEventListener("input",e=>{
+  if(e.target.id==="hcBus"){const q=e.target.value.trim().toLowerCase();document.querySelectorAll("#hcGr .hc-it").forEach(b=>b.hidden=!!q&&!b.dataset.hn.toLowerCase().includes(q));document.querySelectorAll("#hcGr .hc-bl").forEach(g=>g.hidden=![...g.querySelectorAll(".hc-it")].some(b=>!b.hidden))}
+  if(e.target.id==="cHerr"){const x=HERR_IDX.find(h=>h.f===+e.target.dataset.f);if(x&&!e.target.value.toLowerCase().startsWith(x.n.toLowerCase()))delete e.target.dataset.f}
+});
 function vHerr(){
   const L=deObra("herr").sort((a,b)=>(a.estado==="devuelta"?1:0)-(b.estado==="devuelta"?1:0)||b.ts-a.ts);
   if(!L.length)return vacio("Registra qué herramienta llevaste a la obra y quién la tiene.");
   return `<div class="ctl-lista">${L.map(r=>{const d=diasDesde(r.fecha),fuera=r.estado!=="devuelta";
-    return `<div class="panel ctl-it"><div class="ctl-it-t"><b>${esc(r.herr)}</b><small>Tiene: ${esc(r.resp||"—")} · desde el ${fCorta(r.fecha)}</small></div><span class="ctl-ch ${!fuera?"ok":d>15?"al":""}">${fuera?(d>15?`Lleva ${d} días`:"En obra"):"Devuelta"}</span>${fuera?`<div class="ctl-bts"><button type="button" class="btn2" data-devolver="${r.id}">Ya volvió</button></div>`:""}${acc("herr",r)}</div>`}).join("")}</div>`;
+    const hx=herrDe(r),hf=r.hfoto||(hx&&hx.f);return `<div class="panel ctl-it"><div class="ctl-it-t${hf?" hc-con":""}">${hf?`<img class="hc-mini" alt="" src="${herrFoto(hf)}">`:""}<div><b>${esc(r.herr)}</b><small>Tiene: ${esc(r.resp||"—")} · desde el ${fCorta(r.fecha)}</small></div></div><span class="ctl-ch ${!fuera?"ok":d>15?"al":""}">${fuera?(d>15?`Lleva ${d} días`:"En obra"):"Devuelta"}</span>${fuera?`<div class="ctl-bts"><button type="button" class="btn2" data-devolver="${r.id}">Ya volvió</button></div>`:""}${acc("herr",r)}</div>`}).join("")}</div>`;
 }
 // Alertas de stock: material con saldo en la obra igual o menor al mínimo que pone el administrador
 function movsDe(o){return ((typeof invData!=="undefined"&&invData.movs)||[]).filter(m=>ctlU(m.obra)===ctlU(o))}
@@ -6001,11 +6126,11 @@ function ctlNuevo(col,rec){
     +campo("Avance (%)",`<input id="cPct" type="number" inputmode="numeric" min="0" max="100" step="5" value="${r.pct!=null?r.pct:0}">`);
   if(col==="notas")body=campo("Fecha",hoy)+campo("Qué se hizo hoy",`<textarea id="cTexto" rows="4" maxlength="800" placeholder="Trabajos, problemas, visitas…">${esc(r.texto||"")}</textarea>`)+campo("Fotos (hasta 3)",`<input type="file" accept="image/*" multiple id="cFotos">`);
   if(col==="fotos")body=campo("Ambiente",`<input id="cAmb" list="cSugAmb" maxlength="40" value="${escA(r.ambiente||"")}" placeholder="Ej.: Baño principal"><datalist id="cSugAmb">${[...new Set(deObra("fotos").map(x=>x.ambiente).concat(["Baño principal","Baño de visita","Cocina","Lavandería","Sala","Dormitorio","Azotea","Cuarto de tableros"]))].map(x=>`<option value="${escA(x)}">`).join("")}</datalist>`)
-    +`<div class="seg" id="cMom" role="group" aria-label="Momento"><button type="button" data-v="antes" aria-pressed="${r.momento!=="despues"}">Antes</button><button type="button" data-v="despues" aria-pressed="${r.momento==="despues"}">Después</button></div>`+campo("Fecha",hoy)+foto(true);
+    +`<div class="seg" id="cMom" role="group" aria-label="Momento"><button type="button" data-v="antes" aria-pressed="${r.momento!=="despues"}">Antes</button><button type="button" data-v="despues" aria-pressed="${r.momento==="despues"}">Después</button></div>`+campo("Fecha",hoy)+fotosCampo(r);
   if(col==="pedidos")body=campo("Material",`<input id="cMat" list="cSugMat" maxlength="60" value="${escA(r.material||"")}" placeholder="Ej.: Tubo PVC 4 pulgadas"><datalist id="cSugMat">${[...new Set(Object.values(INV_IDX).map(x=>x.n))].slice(0,400).map(x=>`<option value="${escA(x)}">`).join("")}</datalist>`)
     +`<div class="row2">${campo("Cantidad",`<input id="cCant" type="number" inputmode="decimal" min="0" step="any" value="${r.cant||""}">`)}${campo("Unidad",`<select id="cUni">${["und","m","rollo","caja","bolsa","galón","kg"].map(x=>`<option${r.unidad===x?" selected":""}>${x}</option>`).join("")}</select>`)}</div>`
     +campo("Para cuándo (opcional)",`<input type="date" id="cPara" value="${r.para||""}" min="${hoyISO}">`)+campo("Nota (opcional)",`<input id="cNota" maxlength="120" value="${escA(r.nota||"")}">`);
-  if(col==="herr")body=campo("Herramienta",`<input id="cHerr" maxlength="60" value="${escA(r.herr||"")}" placeholder="Ej.: Taladro percutor">`)+campo("Quién la tiene",`<input id="cResp" list="cSugResp" maxlength="40" value="${escA(r.resp||"")}"><datalist id="cSugResp">${PERSONAS.map(p=>`<option value="${escA(titulo(p.n))}">`).join("")}</datalist>`)+campo("Desde",hoy)+campo("Nota (opcional)",`<input id="cNota" maxlength="120" value="${escA(r.nota||"")}">`);
+  if(col==="herr")body=herrPicker(r)+campo("Herramienta (elígela arriba o escribe otra)",`<input id="cHerr" maxlength="60" value="${escA(r.herr||"")}" data-f="${(herrDe(r)||{}).f||""}" placeholder="Ej.: Taladro percutor">`)+campo("Quién la tiene",`<input id="cResp" list="cSugResp" maxlength="40" value="${escA(r.resp||"")}"><datalist id="cSugResp">${PERSONAS.map(p=>`<option value="${escA(titulo(p.n))}">`).join("")}</datalist>`)+campo("Desde",hoy)+campo("Nota (opcional)",`<input id="cNota" maxlength="120" value="${escA(r.nota||"")}">`);
   if(col==="pruebas")body=campo("Prueba",`<select id="cTipo">${PRUEBAS.map(p=>`<option value="${p[0]}"${r.tipo===p[0]?" selected":""}>${p[1]}</option>`).join("")}</select>`)
     +campo("Dónde",`<input id="cLugar" maxlength="60" value="${escA(r.lugar||"")}" placeholder="Ej.: Montante 2.º piso">`)+`<div class="row2">${campo("Valor medido",`<input id="cValor" inputmode="decimal" maxlength="12" value="${escA(r.valor||"")}">`)}${campo("Fecha",hoy)}</div>`
     +`<div class="seg" id="cRes" role="group" aria-label="Resultado"><button type="button" data-v="aprobado" aria-pressed="${r.res!=="observado"}">Aprobada</button><button type="button" data-v="observado" aria-pressed="${r.res==="observado"}">Observada</button></div>`+campo("Nota (opcional)",`<input id="cNota" maxlength="160" value="${escA(r.nota||"")}">`)+foto(false);
@@ -6023,16 +6148,17 @@ async function ctlEnviar(e){
   const base={id:r0.id||ctlId(),obra:r0.obra||invObra,ts:r0.ts||Date.now(),por:r0.por||quien||"",fecha:v("cFecha")||r0.fecha||hoyISO};
   if(base.fecha>hoyISO)return mal("La fecha no puede ser después de hoy.");
   const fFile=$("cFoto")&&$("cFoto").files[0];
-  let rec,cel;
+  let rec,cel,extrasFotos=[];
   if(col==="avance"){if(!v("cPartida").trim())return mal("Escribe la partida.");const p=Math.max(0,Math.min(100,parseInt(v("cPct"),10)||0));rec=Object.assign(base,{partida:v("cPartida").trim(),esp:v("cEsp"),piso:v("cPiso"),pct:p});cel=[rec.partida,p+" % de avance"]}
   if(col==="notas"){if(!v("cTexto").trim())return mal("Escribe qué se hizo.");const fs=[...(($("cFotos")||{}).files||[])].slice(0,3);const fotos=r0.fotos&&!fs.length?r0.fotos:[];for(const f of fs)fotos.push(await fotoLiviana(f));rec=Object.assign(base,{texto:v("cTexto").trim(),fotos});cel=["Cuaderno de obra",fCorta(rec.fecha)]}
-  if(col==="fotos"){if(!v("cAmb").trim())return mal("Escribe el ambiente.");if(!fFile&&!r0.foto&&!F.dataset.fotoPrueba)return mal("Toma o elige la foto.");rec=Object.assign(base,{ambiente:v("cAmb").trim(),momento:segV("cMom")||"antes",foto:fFile?await fotoLiviana(fFile):(r0.foto||F.dataset.fotoPrueba||"")});cel=[rec.ambiente,rec.momento==="antes"?"Antes":"Después"]}
+  if(col==="fotos"){if(!v("cAmb").trim())return mal("Escribe el ambiente.");const fsl=fotosSel.length?fotosSel.slice():(r0.foto?[r0.foto]:F.dataset.fotoPrueba?[F.dataset.fotoPrueba]:[]);if(!fsl.length)return mal("Toma o elige al menos una foto.");rec=Object.assign(base,{ambiente:v("cAmb").trim(),momento:segV("cMom")||"antes",foto:fsl[0]});extrasFotos=ctlEdit?[]:fsl.slice(1);cel=[rec.ambiente,rec.momento==="antes"?"Antes":"Después"]}
   if(col==="pedidos"){const c=parseFloat(String(v("cCant")).replace(",","."));if(!v("cMat").trim())return mal("Escribe el material.");if(!(c>0))return mal("Escribe la cantidad.");rec=Object.assign(base,{material:v("cMat").trim(),cant:c,unidad:v("cUni"),para:v("cPara"),nota:v("cNota").trim(),estado:r0.estado||"pedido"});cel=["Pedido enviado",rec.material]}
-  if(col==="herr"){if(!v("cHerr").trim())return mal("Escribe la herramienta.");rec=Object.assign(base,{herr:v("cHerr").trim(),resp:v("cResp").trim(),nota:v("cNota").trim(),estado:r0.estado||"obra"});cel=[rec.herr,"En obra"]}
+  if(col==="herr"){if(!v("cHerr").trim())return mal("Escribe la herramienta.");rec=Object.assign(base,{herr:v("cHerr").trim(),hfoto:+($("cHerr").dataset.fo||$("cHerr").dataset.f||0)||null,resp:v("cResp").trim(),nota:v("cNota").trim(),estado:r0.estado||"obra"});cel=[rec.herr,"En obra"]}
   if(col==="pruebas"){if(!v("cLugar").trim())return mal("Escribe dónde se hizo la prueba.");rec=Object.assign(base,{tipo:v("cTipo"),lugar:v("cLugar").trim(),valor:v("cValor").trim(),res:segV("cRes")||"aprobado",nota:v("cNota").trim(),foto:fFile?await fotoLiviana(fFile):(r0.foto||"")});cel=[rec.res==="aprobado"?"Prueba aprobada":"Prueba observada",rec.lugar]}
   if(col==="pend"){if(!v("cTexto").trim())return mal("Escribe qué hay que corregir.");rec=Object.assign(base,{texto:v("cTexto").trim(),quien:segV("cQuien")||"Cliente",estado:r0.estado||"abierto",cierre:r0.cierre||"",foto:fFile?await fotoLiviana(fFile):(r0.foto||"")});cel=["Pendiente anotado",rec.quien]}
   if(!rec)return;
   const editando=!!ctlEdit;cerrarOv("ovCtl");ctlVista=col;ctlEdit=null;if(seccion!=="control")ir("control");ctlGuardarRec(col,rec,editando?null:cel);if(editando)toast("Cambios guardados");
+  extrasFotos.forEach((u,i)=>ctlGuardarRec(col,Object.assign({},rec,{id:ctlId(),ts:rec.ts+i+1,foto:u}),null));if(extrasFotos.length)toast(`${extrasFotos.length+1} fotos guardadas`);
 }
 /* --- Eventos --- */
 document.addEventListener("click",async e=>{
