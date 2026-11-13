@@ -5216,7 +5216,7 @@ function invRenderHome(el){
     <div class="inv-obra-meta">${invObra?`<span class="inv-mod ${tc?"tc":"cl"}">${tc?"A todo costo":"Material del cliente"}</span><span class="inv-pis">${pisos.length} niveles</span>`:""}
       <button type="button" class="btnlink" id="invObraCfg">${c?"Editar obra":invObra?"Configurar obra":"+ Nueva obra"}</button>${invObra?'<button type="button" class="btnlink" id="invObraNueva">+ Nueva</button>':""}</div>
   </div>
-  <div class="inv-cats">${INV_CAT.map(tarjeta).join("")}</div>
+  <div class="inv-cats">${INV_CAT.filter(c=>!secOculta("inv-"+c.id)).map(tarjeta).join("")||'<p class="hint">El administrador no te asignó ningún inventario.</p>'}</div>
   ${invObra?`<section class="panel inv-res" id="invRes">
     <div class="ph"><h2>Material usado en la obra</h2><button type="button" class="btnlink" id="invVerObra">Ver por piso y material ›</button></div>
     <p class="inv-big">${invNum(usados.reduce((s,m)=>s+m.cant,0))} piezas</p>
@@ -5246,6 +5246,7 @@ function invEventosMov(el){
 }
 function invRenderCat(el,catId){
   const cat=INV_CAT.find(c=>c.id===catId), movs=invMovsObra(), q=invQ.trim().toLowerCase();
+  if(!cat||secOculta("inv-"+catId)){invVista="home";return invRender()}   // inventario no asignado a este usuario
   const grupos=cat.grupos.filter(g=>!invGrupo||g.id===invGrupo);
   const tile=(g,it)=>{const k=cat.id+"."+g.id+"."+it[0], I=INV_IDX[k], f=invFoto(I), s=invSaldo(movs,k);
     if(q&&!(I.n+" "+g.n).toLowerCase().includes(q)) return "";
@@ -5774,6 +5775,8 @@ const ctlNuevoBase=ctlNuevo;
 ctlNuevo=function(col,rec){if(col==="asist"){cerrarOv("ovCtlNuevo");ctlVista="asist";ir("control");return}return ctlNuevoBase(col,rec)};
 /* Permisos por usuario (como en Finanzas): el administrador marca qué puede ver y usar cada uno: Inventario y cada módulo de Control de obra */
 SECC_PERM.push("inventario",...CTL_MOD.map(m=>m[0]));Object.assign(SECC_NOM,{inventario:"Inventario"},CTL_NOM,{asist:"Asistencia"});
+// Cada inventario (Gasfitería, Electricidad y los que se agreguen a INV_CAT) se da o se quita por usuario
+INV_CAT.forEach(c=>{const k="inv-"+c.id;SECC_PERM.splice(SECC_PERM.indexOf("inventario")+1+INV_CAT.indexOf(c),0,k);SECC_NOM[k]="Inventario de "+c.n});
 (function(){
   const base=ctlRender;
   ctlRender=function(){
